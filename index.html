@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solfège - Référentiel des Notions</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg2: #111115;
+    --bg3: #16161c;
+    --gold: #c9a84c;
+    --gold2: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.12);
+    --gold-border: rgba(201,168,76,0.25);
+    --text: #e8e4da;
+    --text-dim: #8a8070;
+    --text-muted: #4a4540;
+    --accent: #6b8faf;
+    --green: #7fa37d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 256px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .staff-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    opacity: 0.03;
+  }
+
+  .staff-bg svg { width: 100%; height: 100%; }
+
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 60px 60px 40px;
+    border-bottom: 1px solid var(--gold-border);
+    background: linear-gradient(180deg, rgba(201,168,76,0.04) 0%, transparent 100%);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 32px;
+  }
+
+  .clef-symbol {
+    font-size: 120px;
+    line-height: 1;
+    color: var(--gold);
+    opacity: 0.6;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    animation: float 6s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .header-text h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .header-text h1 span { color: var(--gold); }
+
+  .header-text p {
+    margin-top: 12px;
+    font-size: 17px;
+    color: var(--text-dim);
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+
+  .notion-count {
+    margin-left: auto;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .notion-count .num {
+    font-family: 'Cinzel', serif;
+    font-size: 48px;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .notion-count .label {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .search-container {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 32px auto 0;
+    padding: 0 60px;
+  }
+
+  .search-wrap { position: relative; }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--gold-border);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    padding: 14px 20px 14px 50px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    letter-spacing: 0.02em;
+  }
+
+  .search-wrap input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+
+  .search-wrap input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    opacity: 0.6;
+    font-size: 18px;
+  }
+
+  .progress-panel {
+    margin-top: 16px;
+    border: 1px solid var(--gold-border);
+    background: rgba(22,22,28,0.78);
+    padding: 14px 16px;
+  }
+
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+
+  .progress-title {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold2);
+  }
+
+  .progress-meta {
+    font-family: 'DM Mono', monospace;
+    color: var(--text-dim);
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .progress-track {
+    height: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--green));
+    transition: width 0.35s ease;
+  }
+
+  .control-block,
+  .focus-panel {
+    border: 1px solid rgba(201,168,76,0.18);
+    background: rgba(17,17,21,0.72);
+    padding: 14px;
+  }
+
+  .control-label,
+  .focus-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .level-filter,
+  .action-btn {
+    min-height: 34px;
+    border: 1px solid var(--gold-border);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .level-filter,
+  .action-btn {
+    padding: 8px 11px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+  }
+
+  .level-filter.active,
+  .level-filter:hover,
+  .action-btn:hover {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--gold2);
+  }
+
+  .focus-panel {
+    margin-top: 12px;
+  }
+
+  .focus-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .focus-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  main {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 60px 80px;
+  }
+
+  .category {
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .category-header h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .category-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold-border), transparent);
+  }
+
+  .category-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .notion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+  }
+
+  .notion-card {
+    width: 100%;
+    min-height: 58px;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+  }
+
+  .notion-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--gold);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.25s ease;
+  }
+
+  .notion-card:hover,
+  .notion-card:focus-visible {
+    background: var(--bg2);
+    border-color: var(--gold-border);
+    transform: translateX(4px);
+    outline: none;
+  }
+
+  .notion-card:hover::before,
+  .notion-card:focus-visible::before { transform: scaleY(1); }
+
+  .notion-card.done {
+    border-color: rgba(127,163,125,0.35);
+    background: linear-gradient(90deg, rgba(127,163,125,0.08), var(--bg3));
+  }
+
+  .card-check {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .card-check input,
+  .modal-check input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .check-box {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--gold-border);
+    background: rgba(0,0,0,0.2);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    transition: all 0.2s ease;
+  }
+
+  .card-check input:checked + .check-box,
+  .modal-check input:checked + .check-box {
+    background: var(--green);
+    border-color: var(--green);
+    color: #071009;
+  }
+
+  .card-check input:checked + .check-box::after,
+  .modal-check input:checked + .check-box::after {
+    content: '✓';
+  }
+
+  .card-name {
+    font-size: 15.5px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.3;
+    transition: color 0.2s;
+  }
+
+  .card-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .difficulty-badge {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 20px;
+    padding: 3px 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .difficulty-debutant {
+    color: #b8d8a8;
+    border-color: rgba(127,163,125,0.38);
+    background: rgba(127,163,125,0.1);
+  }
+
+  .difficulty-intermediaire {
+    color: #d5c184;
+    border-color: rgba(201,168,76,0.34);
+    background: rgba(201,168,76,0.09);
+  }
+
+  .difficulty-avance {
+    color: #9fbfda;
+    border-color: rgba(107,143,175,0.42);
+    background: rgba(107,143,175,0.1);
+  }
+
+  .difficulty-expert {
+    color: #d6a0a0;
+    border-color: rgba(192,80,74,0.42);
+    background: rgba(192,80,74,0.11);
+  }
+
+  .difficulty-1er-cycle {
+    color: #b8d8a8;
+    border-color: rgba(127,163,125,0.38);
+    background: rgba(127,163,125,0.1);
+  }
+
+  .difficulty-2eme-cycle {
+    color: #d5c184;
+    border-color: rgba(201,168,76,0.34);
+    background: rgba(201,168,76,0.09);
+  }
+
+  .difficulty-3eme-cycle {
+    color: #9fbfda;
+    border-color: rgba(107,143,175,0.42);
+    background: rgba(107,143,175,0.1);
+  }
+
+  .difficulty-superieur {
+    color: #d6a0a0;
+    border-color: rgba(192,80,74,0.42);
+    background: rgba(192,80,74,0.11);
+  }
+
+  .notion-card:hover .card-name,
+  .notion-card:focus-visible .card-name { color: var(--gold2); }
+
+  .notion-card.done .card-name {
+    color: rgba(232,228,218,0.75);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: rgba(127,163,125,0.75);
+  }
+
+  .card-arrow {
+    color: var(--gold);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: all 0.25s ease;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .notion-card:hover .card-arrow,
+  .notion-card:focus-visible .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--gold-border);
+    max-width: 640px;
+    width: 100%;
+    position: relative;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.3s ease;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.1);
+    max-height: min(88vh, 860px);
+    overflow-y: auto;
+  }
+
+  .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+
+  .modal-top {
+    padding: 32px 32px 24px;
+    border-bottom: 1px solid var(--gold-border);
+    background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
+  }
+
+  .modal-category-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.3;
+    padding-right: 32px;
+  }
+
+  .modal-difficulty {
+    margin-top: 16px;
+  }
+
+  .modal-body { padding: 24px 32px 32px; }
+
+  .modal-desc {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 22px;
+    font-weight: 300;
+  }
+
+  .modal-study {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    background: rgba(127,163,125,0.08);
+    border: 1px solid rgba(127,163,125,0.24);
+  }
+
+  .modal-study-text {
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .modal-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-dim);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .modal-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--gold-border);
+    text-decoration: none;
+    transition: all 0.2s;
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  .modal-link:hover {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+    color: var(--gold2);
+  }
+
+  .modal-link.video {
+    border-color: rgba(107,143,175,0.45);
+    background: rgba(107,143,175,0.08);
+  }
+
+  .link-icon {
+    color: var(--gold);
+    font-size: 16px;
+    flex-shrink: 0;
+    width: 18px;
+    text-align: center;
+  }
+
+  .modal-link.video .link-icon { color: var(--accent); }
+
+  .link-text .link-title {
+    font-weight: 600;
+    display: block;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+  }
+
+  .link-text .link-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 22px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    font-family: serif;
+  }
+
+  .modal-close:hover { color: var(--gold); }
+
+  .no-results {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 20px;
+    display: none;
+  }
+
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    letter-spacing: 0.05em;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 700px) {
+    header { padding: 32px 20px 24px; }
+    .search-container { padding: 0 20px; }
+    main { padding: 24px 20px 60px; }
+    .notion-grid { grid-template-columns: 1fr; }
+    .header-inner { flex-wrap: wrap; gap: 16px; }
+    .clef-symbol { font-size: 72px; }
+    .notion-count { margin-left: 0; }
+    .focus-body { align-items: flex-start; flex-direction: column; }
+    .progress-top, .modal-study { align-items: flex-start; flex-direction: column; }
+    .modal { margin: 10px; }
+    .modal-top, .modal-body { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="staff-bg">
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <pattern id="staff" x="0" y="0" width="1440" height="80" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="20" x2="1440" y2="20" stroke="#c9a84c" stroke-width="0.8"/>
+        <line x1="0" y1="30" x2="1440" y2="30" stroke="#c9a84c" stroke-width="0.8"/>
+        <line x1="0" y1="40" x2="1440" y2="40" stroke="#c9a84c" stroke-width="0.8"/>
+        <line x1="0" y1="50" x2="1440" y2="50" stroke="#c9a84c" stroke-width="0.8"/>
+        <line x1="0" y1="60" x2="1440" y2="60" stroke="#c9a84c" stroke-width="0.8"/>
+      </pattern>
+    </defs>
+    <rect width="1440" height="900" fill="url(#staff)"/>
+  </svg>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="clef-symbol" aria-hidden="true">𝄞</div>
+    <div class="header-text">
+      <h1>Référentiel de <span>Solfège</span></h1>
+      <p>Du conservatoire débutant au niveau avancé - cochez les notions maîtrisées au fil du travail</p>
+    </div>
+    <div class="notion-count">
+      <div class="num" id="total-count">-</div>
+      <div class="label">notions</div>
+    </div>
+  </div>
+</header>
+
+<div class="search-container">
+  <div class="search-wrap">
+    <span class="search-icon" aria-hidden="true">♩</span>
+    <input type="text" id="search" placeholder="Rechercher une notion... (ex: gamme, cadence, fugue)" autocomplete="off">
+  </div>
+  <section class="progress-panel" aria-label="Progression générale">
+    <div class="progress-top">
+      <div class="progress-title">Progression générale</div>
+      <div class="progress-meta" id="progress-meta">0 / 0 - 0%</div>
+    </div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </section>
+  <section class="control-panel" aria-label="Filtres de progression">
+    <div class="control-block">
+      <div class="control-label">Filtrer par cycle de conservatoire</div>
+      <div class="segmented" id="level-filters">
+        <button class="level-filter active" type="button" data-level="all" aria-pressed="true">Tous</button>
+        <button class="level-filter" type="button" data-level="1er cycle" aria-pressed="false">1er cycle</button>
+        <button class="level-filter" type="button" data-level="2ème cycle" aria-pressed="false">2ème cycle</button>
+        <button class="level-filter" type="button" data-level="3ème cycle" aria-pressed="false">3ème cycle</button>
+        <button class="level-filter" type="button" data-level="Supérieur" aria-pressed="false">Supérieur</button>
+      </div>
+    </div>
+  </section>
+  <section class="focus-panel" aria-label="Prochaine priorité">
+    <div class="focus-title">Prochaine priorité</div>
+    <div class="focus-body" id="focus-body"></div>
+  </section>
+</div>
+
+<main id="main-content"></main>
+<div class="no-results" id="no-results">Aucune notion trouvée pour cette recherche.</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <button class="modal-close" id="modal-close" aria-label="Fermer">✕</button>
+    <div class="modal-top">
+      <div class="modal-category-tag" id="modal-cat"></div>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-difficulty" id="modal-difficulty"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-study">
+        <div class="modal-study-text">Valider cette notion quand elle est comprise et travaillée.</div>
+        <label class="modal-check">
+          <input type="checkbox" id="modal-done">
+          <span class="check-box" aria-hidden="true"></span>
+          <span id="modal-done-label">Non validée</span>
+        </label>
+      </div>
+      <div class="modal-links" id="modal-links"></div>
+    </div>
+  </div>
+</div>
+
+<footer>𝄞 &nbsp; Chaque notion est une porte vers une meilleure oreille &nbsp; 𝄢</footer>
+
+<script>
+const DATA = [
+  {
+    category: "Notions fondamentales",
+    notions: [
+      n("Les clés (sol, fa, ut 1re, 2e, 3e, 4e ligne)", "Les clés indiquent la hauteur des notes sur la portée. La clé de sol est la plus courante pour les instruments aigus, la clé de fa pour les graves. Les clés d'ut, aussi appelées clés de do, se placent à différentes lignes et permettent de lire les voix intermédiaires sans trop de lignes supplémentaires."),
+      n("Les valeurs de notes", "Chaque note possède une durée relative : la ronde vaut 4 temps, la blanche 2, la noire 1, la croche 1/2, la double croche 1/4, la triple croche 1/8, la quadruple croche 1/16. Ces durées sont relatives au tempo et au chiffrage de la mesure."),
+      n("Les silences correspondants", "Chaque valeur de note a son silence équivalent : pause, demi-pause, soupir, demi-soupir, quart de soupir et valeurs plus courtes. Le silence est aussi une information musicale à part entière."),
+      n("Le point d'augmentation", "Un point placé à droite d'une note ou d'un silence en augmente la durée de moitié. Une noire pointée vaut donc une noire plus une croche, soit 1,5 temps."),
+      n("Le double point d'augmentation", "Un deuxième point ajoute la moitié de la valeur du premier point. Une noire doublement pointée vaut donc 1 + 0,5 + 0,25 = 1,75 temps."),
+      n("La liaison de prolongation", "La liaison de prolongation unit deux notes de même hauteur pour en additionner les durées. La deuxième note n'est pas ré-attaquée."),
+      n("La liaison d'expression", "La liaison d'expression, ou de phrasé, relie des notes de hauteurs différentes et indique de les jouer de manière liée, sans interruption entre elles."),
+      n("La mesure et la barre de mesure", "La mesure est une unité de temps délimitée par des barres verticales sur la portée. Elle organise le temps en groupes réguliers d'accents."),
+      n("Les chiffres indicateurs simples (2/4, 3/4, 4/4, 3/8, 6/8)", "Le chiffre du haut indique le nombre d'unités par mesure, celui du bas indique quelle valeur de note sert de référence. En 3/4, il y a trois noires par mesure."),
+      n("Le tempo", "Le tempo désigne la vitesse d'exécution d'un morceau. Il est indiqué en BPM ou par des termes italiens comme Largo, Adagio, Andante, Moderato, Allegro ou Presto."),
+      n("Les nuances (pp, p, mp, mf, f, ff, crescendo, decrescendo)", "Les nuances indiquent l'intensité sonore, de pianissimo à fortissimo. Le crescendo augmente progressivement le volume, tandis que le decrescendo ou diminuendo le diminue."),
+      n("Les altérations (dièse, bémol, bécarre, double dièse, double bémol)", "Les altérations modifient la hauteur d'une note d'un demi-ton ou d'un ton. Le dièse hausse, le bémol abaisse, le bécarre annule une altération précédente."),
+      n("Les altérations accidentelles", "Une altération accidentelle est placée directement devant une note dans la mesure. Elle s'applique aux notes de même nom dans la même mesure, puis cesse à la mesure suivante."),
+      n("Les altérations constitutives (armure)", "L'armure est l'ensemble des altérations placées au début de la portée, juste après la clé. Elle indique la tonalité et s'applique à toute la pièce sauf indication contraire."),
+      n("Les degrés de la gamme", "Les sept degrés d'une gamme ont chacun un nom : tonique, sus-tonique, médiante, sous-dominante, dominante, sus-dominante et sensible ou sous-tonique."),
+      n("La gamme diatonique majeure", "La gamme majeure suit le schéma T-T-St-T-T-T-St. Elle sert de base à une grande partie de la musique tonale occidentale."),
+      n("La gamme diatonique mineure naturelle", "La gamme mineure naturelle suit le schéma T-St-T-T-St-T-T. Elle est la relative mineure de la gamme majeure partageant la même armure."),
+      n("La gamme mineure harmonique", "La gamme mineure harmonique hausse le septième degré de la mineure naturelle afin de créer une sensible et de renforcer la résolution vers la tonique."),
+      n("La gamme mineure mélodique", "La gamme mineure mélodique hausse les VI et VII en montant, puis revient souvent à la forme naturelle en descendant dans l'usage classique."),
+      n("La gamme chromatique", "La gamme chromatique divise l'octave en douze demi-tons égaux. Elle comprend toutes les notes de la gamme diatonique et leurs altérations."),
+      n("Les tons et demi-tons (diatoniques et chromatiques)", "Le demi-ton est le plus petit intervalle du système tempéré. Un demi-ton diatonique sépare deux noms de notes différents, tandis qu'un demi-ton chromatique garde le même nom de note."),
+      n("Le cycle des quintes", "Le cycle des quintes organise les tonalités par quintes montantes ou quartes descendantes. Il montre les relations entre tonalités, armures et modulations naturelles."),
+      n("Les 15 tonalités majeures et leurs armures", "Les quinze tonalités majeures couvrent les sept armures à dièses, les sept armures à bémols et do majeur sans altération. Certaines tonalités sont enharmoniques."),
+      n("Les 15 tonalités mineures et leurs armures", "Chaque tonalité majeure possède une relative mineure partageant la même armure. La relative mineure se trouve une tierce mineure sous la tonique majeure."),
+      n("La relative mineure / majeure", "Deux tonalités sont relatives si elles partagent la même armure. Elles utilisent les mêmes notes mais n'ont pas la même tonique."),
+      n("La tonique parallèle (homonyme)", "Deux tonalités homonymes partagent la même tonique mais ont des armures différentes, comme do majeur et do mineur."),
+      n("Les intervalles simples (juste, majeur, mineur, augmenté, diminué)", "Un intervalle est la distance entre deux notes. Son nom dépend du nombre de degrés et de sa qualité : juste, majeur, mineur, augmenté ou diminué."),
+      n("Les intervalles composés", "Un intervalle composé dépasse l'octave. Une neuvième correspond à une octave plus une seconde, une dixième à une octave plus une tierce."),
+      n("Le renversement des intervalles", "Renverser un intervalle consiste à déplacer une note d'une octave. Le nombre du renversement vaut 9 moins le nombre original, et les qualités majeur et mineur s'échangent."),
+      n("L'enharmonie", "Deux notes sont enharmoniques si elles sonnent de manière identique dans le tempérament égal mais s'écrivent différemment, comme fa dièse et sol bémol."),
+      n("Les intervalles enharmoniques", "Un intervalle enharmonique sonne comme un autre mais possède une notation différente, par exemple une tierce augmentée et une quarte juste dans certains contextes."),
+      n("La notion de consonance et dissonance", "La consonance décrit des intervalles perçus comme stables, tandis que la dissonance désigne des intervalles instables appelant souvent une résolution.")
+    ]
+  },
+  {
+    category: "Rythme et mesure",
+    notions: [
+      n("Les chiffres indicateurs composés (6/8, 9/8, 12/8...)", "Les mesures composées sont celles où le temps se divise naturellement en trois. En 6/8, le temps de référence est souvent la noire pointée."),
+      n("La distinction mesures simples / composées", "Dans une mesure simple, le temps se divise en deux. Dans une mesure composée, il se divise en trois, ce qui change profondément les accents et les regroupements."),
+      n("Le triolet", "Un triolet est un groupe de trois notes joué dans la durée de deux notes de même valeur. Il introduit une division ternaire dans un contexte binaire."),
+      n("Le duolet", "Le duolet place deux notes dans la durée normalement occupée par trois notes de même valeur. Il introduit une division binaire dans un contexte ternaire."),
+      n("Les contretemps", "Un contretemps est une attaque placée sur une partie faible du temps, souvent précédée d'un silence ou d'une tenue sur la partie forte."),
+      n("La syncope (régulière, irrégulière)", "La syncope déplace l'accent attendu vers un temps faible ou une subdivision faible, souvent grâce à une liaison qui traverse un temps fort."),
+      n("L'anacrouse", "L'anacrouse est une note ou un groupe de notes placé avant le premier temps fort d'une phrase ou d'un morceau."),
+      n("Les groupes irréguliers (quintolet, sextolet, septolet...)", "Les groupes irréguliers font entrer un nombre inhabituel de notes dans une durée régulière : cinq, six ou sept notes dans la place d'un autre groupe."),
+      n("L'hémiole", "L'hémiole crée temporairement une sensation de deux temps là où il y en avait trois, ou l'inverse, par un changement de regroupement rythmique."),
+      n("Le changement de mesure", "Un changement de mesure apparaît quand le chiffrage change en cours de pièce. Il peut créer une rupture, une relance ou une asymétrie expressive."),
+      n("Les mesures additives et asymétriques (5/4, 7/8, 11/8...)", "Les mesures asymétriques se comprennent comme des additions de groupes de deux et de trois, par exemple 7/8 = 2+2+3 ou 3+2+2."),
+      n("La polyrythmie", "La polyrythmie superpose simultanément deux rythmes différents, comme trois notes dans le temps de deux."),
+      n("La polymétrie", "La polymétrie superpose des mètres différents dans des voix différentes, par exemple une partie en 3/4 contre une partie en 4/4."),
+      n("Le rapport de tempo (M.M.)", "Le M.M., ou Métronome Maelzel, indique le nombre de pulsations par minute pour une valeur de note donnée.")
+    ]
+  },
+  {
+    category: "Harmonie",
+    notions: [
+      n("L'accord parfait (majeur, mineur, augmenté, diminué)", "Un accord parfait est formé d'une fondamentale, d'une tierce et d'une quinte. Sa qualité dépend de la taille de la tierce et de la quinte."),
+      n("L'accord en position fondamentale", "Un accord est en position fondamentale quand sa fondamentale est à la basse. C'est la disposition la plus stable."),
+      n("Les renversements d'accords", "Un accord est renversé quand la basse n'est pas la fondamentale : tierce à la basse pour le premier renversement, quinte à la basse pour le deuxième."),
+      n("La tierce de Picardie", "La tierce de Picardie est l'emploi d'un accord final majeur dans une pièce ou section en mineur, créant une conclusion plus lumineuse."),
+      n("Les fonctions harmoniques (tonique, sous-dominante, dominante)", "Les fonctions harmoniques regroupent les degrés selon leur rôle : stabilité de la tonique, préparation de la sous-dominante et tension de la dominante."),
+      n("Les degrés harmoniques (I à VII) en majeur et mineur", "Chaque degré d'une gamme produit un accord diatonique. Leur qualité dépend du mode majeur, mineur naturel, mineur harmonique ou mineur mélodique."),
+      n("La sensible et la sous-tonique", "La sensible est le septième degré situé à un demi-ton sous la tonique. La sous-tonique est située à un ton sous la tonique et produit une couleur plus modale."),
+      n("L'accord de dominante avec septième (V7)", "L'accord de septième de dominante contient une tierce majeure, une quinte juste et une septième mineure au-dessus de la fondamentale. Son triton appelle une résolution."),
+      n("La résolution de la dominante", "La résolution dominante-tonique est l'attraction centrale de la tonalité. La sensible monte vers la tonique et la septième de dominante descend généralement."),
+      n("Les accords de sixte (1er renversement)", "L'accord de sixte est le premier renversement d'un accord parfait, avec la tierce à la basse. Il rend les lignes de basse plus souples."),
+      n("Les accords de quarte et sixte (2e renversement)", "L'accord de quarte et sixte est le deuxième renversement, avec la quinte à la basse. Il est instable et s'emploie surtout dans des contextes précis."),
+      n("Les septièmes diatoniques sur chaque degré", "En ajoutant une septième à chaque accord diatonique, on obtient des couleurs harmoniques variées : septième majeure, mineure, dominante ou demi-diminuée."),
+      n("L'accord de septième de dominante et ses renversements", "Le V7 possède quatre positions : fondamentale, premier renversement, deuxième renversement et troisième renversement, chacune avec un chiffrage et une résolution propres."),
+      n("L'accord de septième diminuée", "L'accord de septième diminuée superpose quatre tierces mineures. Sa symétrie le rend très utile pour moduler vers des tonalités éloignées."),
+      n("L'accord de neuvième de dominante", "L'accord de neuvième de dominante ajoute une neuvième au V7. Cette note enrichit la tension et résout souvent par mouvement descendant."),
+      n("La cadence parfaite", "La cadence parfaite V-I ou V7-I est la clôture harmonique la plus définitive lorsqu'elle arrive en position fondamentale avec la tonique au soprano."),
+      n("La cadence plagale", "La cadence plagale IV-I, souvent appelée cadence d'Amen, produit une conclusion plus douce que la cadence parfaite."),
+      n("La cadence rompue", "La cadence rompue évite la résolution attendue de V vers I, souvent en allant vers VI. Elle prolonge ou surprend la phrase."),
+      n("La demi-cadence", "La demi-cadence s'arrête sur la dominante. Elle crée un effet de suspens, comme une question sans réponse."),
+      n("La pédale harmonique (tonique, dominante)", "Une pédale est une note tenue ou répétée, souvent à la basse, pendant que les harmonies changent au-dessus."),
+      n("La broderie", "La broderie est une note étrangère qui s'éloigne d'une note réelle puis y revient, par mouvement conjoint supérieur ou inférieur."),
+      n("Le retard", "Le retard est une note préparée dans un accord précédent, tenue sur l'accord suivant comme dissonance, puis résolue généralement vers le bas."),
+      n("La note de passage", "La note de passage relie deux notes réelles par mouvement conjoint et fluidifie la ligne mélodique sans changer l'harmonie de fond."),
+      n("L'anticipation", "L'anticipation fait entendre une note de l'accord suivant avant l'arrivée de cet accord."),
+      n("L'appoggiature", "L'appoggiature est une note expressive et souvent dissonante qui arrive sur un temps fort et résout par mouvement conjoint."),
+      n("La fausse relation", "Une fausse relation apparaît quand une note et son altération chromatique se présentent dans des voix différentes de manière rapprochée.")
+    ]
+  },
+  {
+    category: "Modalité et gammes avancées",
+    notions: [
+      n("Les modes grégoriens (dorien, phrygien, lydien, mixolydien, éolien, locrien, ionien)", "Les sept modes sont construits à partir des degrés de la gamme majeure. Chacun possède une couleur propre liée à ses intervalles caractéristiques."),
+      n("La gamme par tons", "La gamme par tons divise l'octave en six tons entiers. Elle produit une couleur flottante et symétrique, souvent associée à Debussy."),
+      n("La gamme diminuée (octatonique)", "La gamme octatonique alterne tons et demi-tons. Sa symétrie la relie aux accords diminués et à de nombreuses couleurs modernes."),
+      n("La gamme pentatonique majeure et mineure", "La gamme pentatonique utilise cinq sons et évite les demi-tons. Elle est présente dans de nombreuses traditions musicales et dans l'improvisation."),
+      n("La gamme de blues", "La gamme de blues ajoute une blue note à la pentatonique mineure, donnant une expressivité centrale au blues, au jazz et au rock."),
+      n("La gamme bop (dominante, majeure, mineure)", "Les gammes bop ajoutent une note de passage chromatique afin que les notes d'accord tombent sur les temps forts en improvisation jazz."),
+      n("Le mode lydien dominante", "Le mode lydien dominante combine une quarte augmentée et une septième mineure. Il est fréquent sur les accords de dominante avec #11."),
+      n("Les modes à transpositions limitées (Messiaen)", "Les modes à transpositions limitées se reproduisent après un petit nombre de transpositions. Messiaen les utilise pour créer des couleurs harmoniques particulières.")
+    ]
+  },
+  {
+    category: "Contrepoint",
+    notions: [
+      n("Le contrepoint à la note contre note (1re espèce)", "La première espèce oppose une note à une note du cantus firmus et n'emploie que des consonances."),
+      n("Le contrepoint à deux notes contre une (2e espèce)", "La deuxième espèce place deux notes contre chaque note du cantus firmus, introduisant notamment les notes de passage."),
+      n("Le contrepoint à quatre notes contre une (3e espèce)", "La troisième espèce utilise quatre notes contre une et permet davantage de mouvement mélodique et d'ornements."),
+      n("Le contrepoint en notes liées (4e espèce - syncopes)", "La quatrième espèce repose sur les syncopes et les retards : une consonance préparée devient dissonance puis résout."),
+      n("Le contrepoint fleuri (5e espèce)", "La cinquième espèce combine les espèces précédentes dans une écriture plus musicale et plus libre."),
+      n("La règle des quintes et octaves parallèles", "Les quintes et octaves parallèles sont évitées en contrepoint strict car elles diminuent l'indépendance des voix."),
+      n("Le mouvement contraire, oblique, similaire, parallèle", "Les mouvements entre voix peuvent être contraires, obliques, similaires ou parallèles. Le mouvement contraire favorise l'indépendance.")
+    ]
+  },
+  {
+    category: "Formes et structure",
+    notions: [
+      n("Le motif", "Le motif est une petite cellule musicale reconnaissable qui peut être répétée, transposée, inversée, augmentée ou développée."),
+      n("La phrase musicale", "Une phrase musicale forme une idée relativement complète, souvent de quatre ou huit mesures, terminée par une cadence."),
+      n("La période (antécédent / conséquent)", "La période associe un antécédent, souvent suspensif, et un conséquent qui apporte une réponse cadentielle."),
+      n("La forme binaire (AB)", "La forme binaire divise une pièce en deux sections, souvent répétées, très fréquentes dans les danses baroques."),
+      n("La forme ternaire (ABA)", "La forme ternaire encadre une section contrastante B par le retour d'une section A."),
+      n("Le rondo", "Le rondo alterne un refrain avec plusieurs épisodes : ABACA, ABACABA ou d'autres variantes."),
+      n("La forme sonate (exposition, développement, réexposition, coda)", "La forme sonate présente, développe puis réexpose des thèmes dans un parcours tonal structuré."),
+      n("La fugue (sujet, réponse, contre-sujet, strette, divertissement)", "La fugue développe un sujet par imitation entre plusieurs voix, avec réponses, contre-sujets, divertissements et parfois strettes."),
+      n("Le canon", "Le canon fait imiter exactement une mélodie par une ou plusieurs voix décalées dans le temps.")
+    ]
+  },
+  {
+    category: "Modulation et tonalité avancée",
+    notions: [
+      n("La modulation diatonique (pivot)", "La modulation par accord pivot utilise un accord commun aux deux tonalités pour passer de l'une à l'autre de manière fluide."),
+      n("La modulation chromatique", "La modulation chromatique altère une note pour conduire l'harmonie vers une nouvelle tonalité."),
+      n("La modulation enharmonique", "La modulation enharmonique réinterprète l'orthographe d'un accord pour changer de tonalité."),
+      n("La dominante secondaire (V/V, V/II, etc.)", "Une dominante secondaire applique temporairement la fonction de dominante à un degré autre que la tonique."),
+      n("Le napolitain (IIb)", "L'accord napolitain est construit sur le deuxième degré abaissé, souvent en premier renversement, et prépare fortement la dominante."),
+      n("Les accords augmentés (sixte italienne, française, allemande)", "Les accords de sixte augmentée contiennent une sixte augmentée qui résout vers la dominante."),
+      n("L'emprunt modal", "L'emprunt modal utilise des accords issus du mode parallèle, comme des accords de do mineur dans un contexte de do majeur.")
+    ]
+  },
+  {
+    category: "Lecture et déchiffrage",
+    notions: [
+      n("La lecture en clé de sol", "La clé de sol, placée sur la deuxième ligne, sert aux registres aigus et à de nombreux instruments ou voix."),
+      n("La lecture en clé de fa", "La clé de fa, placée sur la quatrième ligne, sert aux registres graves et à la main gauche du piano."),
+      n("La lecture en clé d'ut (1re, 2e, 3e, 4e ligne)", "Les clés d'ut placent le do sur différentes lignes et sont essentielles pour l'alto, le ténor et la lecture d'orchestre."),
+      n("La transposition à vue", "Transposer à vue consiste à lire dans une tonalité et à jouer ou chanter immédiatement dans une autre."),
+      n("La lecture de partitions d'orchestre (instruments transpositeurs)", "Lire une partition d'orchestre exige de comprendre les instruments transpositeurs, dont la note écrite diffère du son réel.")
+    ]
+  },
+  {
+    category: "Écriture et analyse",
+    notions: [
+      n("La réalisation d'une basse chiffrée", "La basse chiffrée indique les intervalles à construire au-dessus d'une basse écrite afin de réaliser l'harmonie complète."),
+      n("L'harmonisation d'une mélodie donnée", "Harmoniser une mélodie consiste à choisir les accords et dispositions qui accompagnent la ligne mélodique de manière cohérente."),
+      n("L'analyse harmonique chiffrée (degrés + renversements)", "L'analyse harmonique identifie les degrés, qualités d'accords, renversements et fonctions dans une partition."),
+      n("L'analyse formelle", "L'analyse formelle repère les sections, phrases, cadences, transitions et proportions d'une oeuvre."),
+      n("L'analyse contrapuntique", "L'analyse contrapuntique étudie l'indépendance des voix, les imitations, les mouvements et la préparation-résolution des dissonances.")
+    ]
+  },
+  {
+    category: "Dictée et formation auditive",
+    notions: [
+      n("La dictée mélodique (une voix)", "La dictée mélodique consiste à transcrire une mélodie entendue, en travaillant mémoire, intervalles, rythme et notation."),
+      n("La dictée rythmique", "La dictée rythmique isole la dimension temporelle et entraîne la reconnaissance des valeurs, silences, syncopes et groupes irréguliers."),
+      n("La dictée harmonique", "La dictée harmonique identifie les accords, degrés, renversements et cadences entendus."),
+      n("La reconnaissance des intervalles à l'oreille", "Reconnaître les intervalles à l'oreille est une base de la formation auditive, utile pour lire, chanter et analyser."),
+      n("La reconnaissance des modes et gammes à l'oreille", "Reconnaître les modes et gammes à l'oreille demande d'entendre leurs couleurs caractéristiques et leurs degrés distinctifs.")
+    ]
+  },
+  {
+    category: "Notions avancées et contemporaines",
+    notions: [
+      n("Le sérialisme et la série dodécaphonique", "Le sérialisme organise les douze sons chromatiques en série et exploite ses formes originale, rétrograde, inversée et rétrograde inversée."),
+      n("L'atonalité et la pantonalité", "L'atonalité désigne une musique sans centre tonal clairement établi. La pantonalité évoque plutôt la coexistence possible de plusieurs relations tonales."),
+      n("L'analyse post-tonale (set theory, vecteur intervallique, forme première)", "La théorie des ensembles analyse les pitch-class sets, leur forme première et leur vecteur intervallique."),
+      n("La polytonalité et la bitonalité", "La polytonalité superpose plusieurs centres tonaux simultanés. La bitonalité en superpose deux."),
+      n("Le rythme aksak et les rythmes non occidentaux", "L'aksak désigne des rythmes asymétriques formés de cellules de deux et trois unités, courants dans les musiques balkaniques et turques."),
+      n("Les notations contemporaines", "Les notations contemporaines incluent notations proportionnelles, clusters, microtones, partitions graphiques et indications d'effets étendus.")
+    ]
+  }
+];
+
+const ADDITIONAL_SECTIONS = [
+  {
+    category: "Notation, interprétation et accordage",
+    notions: [
+      n("Les clés anciennes (clé de sol 1re ligne, clé de fa 3e ligne)", "Ces clés historiques déplacent le repère de sol ou de fa pour adapter la notation aux tessitures anciennes. Elles apparaissent dans des partitions vocales, liturgiques et théoriques antérieures à la normalisation moderne.", "Avancé"),
+      n("La notation mensurale", "La notation mensurale précède la notation rythmique moderne et emploie des figures comme longa, brevis, semibrevis et minima. Elle indique les rapports de durée par des signes de tempus, prolatio et proportions.", "Expert"),
+      n("Les proportions rythmiques (notation ancienne et contemporaine)", "Les proportions rythmiques indiquent des rapports de vitesse ou de durée, comme 3:2, 2:1 ou 5:4. Elles servent autant dans les traités anciens que dans l'écriture contemporaine précise.", "Avancé"),
+      n("Le rubato", "Le rubato est une liberté expressive du tempo : certaines valeurs sont légèrement étirées ou comprimées sans perdre la cohérence globale de la phrase.", "Intermédiaire"),
+      n("Les indications agogiques (ritardando, accelerando, stringendo, etc.)", "Les indications agogiques modifient le mouvement du tempo : ritardando ralentit, accelerando accélère, stringendo resserre l'élan, ritenuto retient plus brusquement.", "Intermédiaire"),
+      n("Les articulations (staccato, legato, marcato, tenuto, portato)", "Les articulations précisent l'attaque, la tenue et la séparation des sons. Elles changent profondément le caractère d'une phrase sans modifier les hauteurs.", "Débutant"),
+      n("Les ornements (trille, mordant, gruppetto, appoggiature double)", "Les ornements enrichissent une note principale par des notes voisines codifiées. Leur exécution dépend du style, de l'époque et parfois du pays.", "Intermédiaire"),
+      n("Les tempéraments (égal, mésotonique, inégal)", "Un tempérament répartit les compromis d'accordage entre les intervalles. Le tempérament égal uniformise les demi-tons, tandis que les tempéraments anciens privilégient certaines tonalités.", "Avancé"),
+      n("L'accordage et les systèmes de diapason", "Le diapason fixe la hauteur de référence, comme la = 440 Hz ou 415 Hz en pratique baroque. Les systèmes de diapason varient selon les époques, pays et contextes d'interprétation.", "Intermédiaire"),
+      n("Les micro-intervalles (quarts de ton, etc.)", "Les micro-intervalles sont plus petits que le demi-ton tempéré. Ils incluent quarts de ton, tiers de ton et autres divisions fines de l'octave.", "Avancé"),
+      n("Les systèmes microtonaux", "Les systèmes microtonaux organisent l'octave autrement que par douze demi-tons égaux, avec des tempéraments à 19, 24, 31, 53 sons ou des systèmes fondés sur les rapports naturels.", "Expert"),
+      n("Les intervalles justes (intonation pure)", "L'intonation pure construit les intervalles à partir de rapports simples entre fréquences, comme 3:2 pour la quinte juste ou 5:4 pour la tierce majeure pure.", "Avancé"),
+      n("L'intonation et les systèmes justes (just intonation avancée)", "L'intonation juste avancée étend les rapports naturels à des limites harmoniques plus hautes, comme 7-limit, 11-limit ou 13-limit, avec des comma shifts et réseaux de hauteurs.", "Expert"),
+      n("Les tempéraments historiques détaillés (Werckmeister, Kirnberger, Vallotti...)", "Les tempéraments Werckmeister, Kirnberger, Vallotti et apparentés donnent des couleurs différentes aux tonalités. Ils sont essentiels pour l'interprétation historiquement informée.", "Expert"),
+      n("La notation assistée par ordinateur (standards contemporains)", "La notation assistée par ordinateur utilise des standards comme MusicXML, MEI, MIDI et SMuFL pour représenter, échanger et graver la musique.", "Avancé")
+    ]
+  },
+  {
+    category: "Rythme avancé",
+    notions: [
+      n("Les figures irrégulières imbriquées", "Les figures irrégulières imbriquées placent un tuplet à l'intérieur d'un autre, par exemple un triolet contenant un quintolet. Elles exigent une lecture par rapports de proportions.", "Expert"),
+      n("Les métriques non rétrogradables", "Une métrique non rétrogradable est symétrique : elle se lit de la même manière dans les deux sens. Messiaen les emploie pour créer une sensation de temps suspendu.", "Expert"),
+      n("Les rythmes isorythmiques", "L'isorythmie superpose une talea rythmique et un color mélodique qui se répètent selon des longueurs parfois différentes. Elle est centrale dans certains motets médiévaux.", "Expert"),
+      n("Les cycles rythmiques non occidentaux (tala, etc.)", "Les cycles rythmiques comme les tala indiens organisent le temps en cycles accentuels longs, souvent plus complexes que la mesure occidentale régulière.", "Avancé"),
+      n("La théorie des rythmes euclidiens", "Les rythmes euclidiens répartissent des attaques aussi régulièrement que possible dans un nombre donné de pulsations. Ils modélisent de nombreux rythmes traditionnels et électroniques.", "Expert"),
+      n("Les proportions mathématiques en musique (nombre d'or, séries)", "Les proportions mathématiques structurent durées, formes ou hauteurs par des rapports numériques, suites, séries ou modèles comme le nombre d'or.", "Avancé"),
+      n("Les structures auto-similaires (fractales musicales)", "Les structures fractales répètent des profils similaires à plusieurs échelles de temps ou de hauteur, créant une cohérence par auto-similarité.", "Expert")
+    ]
+  },
+  {
+    category: "Harmonie avancée et jazz",
+    notions: [
+      n("La hiérarchie tonale (stabilité des degrés)", "La hiérarchie tonale classe les degrés selon leur stabilité perceptive : la tonique est la plus stable, puis dominante et médiante, tandis que les degrés tendus appellent résolution.", "Intermédiaire"),
+      n("Les cadences évitées", "Une cadence évitée prépare une résolution attendue puis la détourne vers un autre accord. Elle prolonge la tension et retarde la clôture.", "Intermédiaire"),
+      n("Les cadences phrygiennes", "La cadence phrygienne est une formule descendante caractéristique, souvent iv6-V en mineur, avec un demi-ton descendant à la basse vers la dominante.", "Avancé"),
+      n("Les accords de septième non dominante (majeure 7, mineure 7, demi-diminuée)", "Ces accords de septième ne remplissent pas forcément la fonction dominante. Ils donnent des couleurs de tonique, sous-dominante, prédominante ou modalité jazz.", "Intermédiaire"),
+      n("Les accords de onzième et treizième", "Les accords de onzième et treizième prolongent l'empilement de tierces au-delà de la neuvième. Ils sont fréquents dans le jazz, l'arrangement et l'harmonie moderne.", "Avancé"),
+      n("Les accords altérés (b9, #9, #11, b13...)", "Les accords altérés modifient les extensions de dominante afin d'augmenter la tension avant résolution. Ils sont liés à la gamme altérée et aux dominantes secondaires.", "Avancé"),
+      n("Les substitutions tritoniques", "La substitution tritonique remplace une dominante par une autre dominante située à un triton, car elles partagent le même triton guide avec résolution chromatique inverse.", "Avancé"),
+      n("Les progressions harmoniques types (II-V-I, cercle des quintes)", "Les progressions types comme II-V-I, I-vi-ii-V ou les cycles de quintes forment des patrons de syntaxe harmonique très utilisés.", "Intermédiaire"),
+      n("Le chiffrage américain (jazz chords)", "Le chiffrage américain note les accords par lettres et symboles : Cmaj7, Dm7, G7b9, F#ø7. Il encode qualité, extensions et altérations.", "Intermédiaire"),
+      n("Les voicings", "Un voicing est la disposition concrète des notes d'un accord entre les voix ou les mains. Il influence la clarté, la couleur, la densité et la conduite des voix.", "Avancé"),
+      n("La modulation éloignée", "Une modulation éloignée mène vers une tonalité peu voisine dans le cycle des quintes. Elle demande souvent pivot chromatique, enharmonie ou médiantes chromatiques.", "Avancé"),
+      n("Les relations de tierces (médiantes chromatiques)", "Les médiantes chromatiques relient des accords ou tonalités à distance de tierce avec au moins une note commune ou une couleur partagée.", "Avancé"),
+      n("La tonicisation", "La tonicisation donne momentanément à un degré le statut de tonique locale, souvent par dominante secondaire, sans quitter durablement la tonalité principale.", "Intermédiaire"),
+      n("Les pivots enharmoniques complexes", "Les pivots enharmoniques complexes réinterprètent un accord altéré, diminué ou augmenté pour basculer vers une fonction entièrement nouvelle.", "Expert"),
+      n("Les systèmes d'accords non tertiaires (quartaux, quintaux)", "Les accords quartaux et quintaux se construisent par quartes ou quintes plutôt que par tierces. Ils produisent des sonorités ouvertes, modales ou modernes.", "Avancé"),
+      n("Les agrégats", "Un agrégat est un ensemble dense de sons simultanés ou successifs, souvent analysé comme collection de hauteurs plutôt que comme accord fonctionnel.", "Avancé"),
+      n("Les clusters", "Un cluster regroupe des notes voisines, souvent par secondes. Il crée une masse sonore dense, utilisée au piano, à l'orchestre ou dans l'écriture contemporaine.", "Avancé")
+    ]
+  },
+  {
+    category: "Contrepoint et formes avancées",
+    notions: [
+      n("Le contrepoint renversable", "Le contrepoint renversable est écrit pour que les voix puissent échanger leur position, par exemple à l'octave, à la dixième ou à la douzième.", "Avancé"),
+      n("Le contrepoint double et triple", "Le contrepoint double ou triple permet à deux ou trois lignes de fonctionner dans plusieurs positions relatives, sans perdre la validité harmonique.", "Expert"),
+      n("L'imitation", "L'imitation reprend un motif dans une autre voix, à l'identique ou transformé. Elle fonde de nombreuses textures contrapuntiques.", "Intermédiaire"),
+      n("Le canon rétrograde et canon en inversion", "Le canon rétrograde imite une ligne à rebours, tandis que le canon en inversion renverse les directions intervalliques. Ces procédés exigent une conception très contrôlée.", "Expert"),
+      n("La fugue double et triple", "Une fugue double ou triple combine deux ou trois sujets capables d'être superposés. Elle représente un haut niveau d'écriture contrapuntique.", "Expert"),
+      n("Le fugato", "Le fugato emploie une texture de fugue à l'intérieur d'une forme plus libre, sans suivre nécessairement toutes les étapes d'une fugue complète.", "Avancé"),
+      n("Les formes libres (fantaisie, prélude)", "Les formes libres privilégient le geste, l'improvisation ou l'enchaînement d'idées plutôt qu'un plan fixe. La fantaisie et le prélude en sont des exemples majeurs.", "Intermédiaire"),
+      n("La variation (thème et variations)", "La variation transforme un thème par rythme, harmonie, texture, registre, mode, ornementation ou caractère tout en conservant un lien reconnaissable.", "Intermédiaire"),
+      n("La passacaille", "La passacaille développe une série de variations sur une basse ou progression obstinée, souvent de caractère grave et architectural.", "Avancé"),
+      n("La chaconne", "La chaconne repose sur une progression harmonique répétée ou une basse récurrente. Elle est proche de la passacaille mais historiquement plus dansante.", "Avancé")
+    ]
+  },
+  {
+    category: "Analyse, orchestration et théorie contemporaine",
+    notions: [
+      n("Les techniques étendues (notation et interprétation)", "Les techniques étendues demandent aux instruments des sons non conventionnels : souffle, multiphoniques, pizzicato Bartók, flatterzunge, sul ponticello ou préparations.", "Avancé"),
+      n("La notation graphique", "La notation graphique représente le son par formes visuelles, espaces, textures et symboles non standardisés. Elle demande souvent une part d'interprétation.", "Avancé"),
+      n("La spatialisation sonore", "La spatialisation organise les sons dans l'espace : placement des musiciens, diffusion multicanale, trajectoires sonores ou effets de distance.", "Expert"),
+      n("L'orchestration (tessitures, timbres, combinaisons instrumentales)", "L'orchestration étudie les tessitures, couleurs, équilibres, attaques et mélanges instrumentaux pour transformer une idée musicale en matière sonore.", "Avancé"),
+      n("Les instruments transpositeurs (théorie avancée)", "La théorie avancée des transpositeurs inclut transpositions multiples, changements de clé, registres réels, instruments anciens et lecture en partition d'orchestre.", "Avancé"),
+      n("La réduction de partition", "La réduction de partition condense une texture orchestrale ou chorale en une version lisible au clavier, en préservant l'essentiel harmonique et contrapuntique.", "Avancé"),
+      n("La lecture à plusieurs clés simultanées", "La lecture simultanée de plusieurs clés exige de suivre plusieurs systèmes de repères en même temps, surtout dans les partitions vocales anciennes et orchestrales.", "Avancé"),
+      n("La mémoire auditive structurée", "La mémoire auditive structurée organise ce qui est entendu en motifs, fonctions, cadences, formes et timbres afin de mieux retenir et transcrire.", "Avancé"),
+      n("L'analyse schenkerienne", "L'analyse schenkerienne réduit la surface musicale vers des niveaux structurels profonds, autour de l'Ursatz, de la conduite des voix et des prolongations tonales.", "Expert"),
+      n("L'analyse fonctionnelle avancée", "L'analyse fonctionnelle avancée suit les transformations de fonctions, dominantes secondaires, substitutions, modulations locales et ambiguïtés tonales.", "Avancé"),
+      n("L'analyse motivique", "L'analyse motivique observe la transformation des cellules musicales par répétition, augmentation, diminution, inversion, fragmentation ou déplacement.", "Intermédiaire"),
+      n("L'analyse spectrale", "L'analyse spectrale étudie le contenu fréquentiel, les partiels, les formants et l'évolution du timbre comme matériau structurel.", "Expert"),
+      n("La théorie néo-riemannienne", "La théorie néo-riemannienne analyse les relations entre accords par transformations parcimonieuses plutôt que par fonctions tonales classiques.", "Expert"),
+      n("Les transformations harmoniques (P, L, R)", "Les transformations P, L et R relient les triades par changement minimal : parallèle, leading-tone exchange et relatif.", "Expert"),
+      n("La théorie des ensembles (set theory complète)", "La set theory complète classe les ensembles de classes de hauteurs par forme normale, forme première, vecteur intervallique, inclusion et relations Z.", "Expert"),
+      n("Les matrices dodécaphoniques (P, R, I, RI)", "Une matrice dodécaphonique présente les formes prime, rétrograde, inversée et rétrograde inversée d'une série de douze sons.", "Expert"),
+      n("Le total chromaticism", "Le total chromaticism vise l'emploi saturé ou systématique des douze classes de hauteurs, souvent sans hiérarchie tonale traditionnelle.", "Expert"),
+      n("Les réseaux harmoniques (Tonnetz)", "Le Tonnetz représente les relations de quintes, tierces majeures et tierces mineures dans un réseau spatial utile pour l'harmonie tonale et néo-riemannienne.", "Expert"),
+      n("L'analyse paradigmatique", "L'analyse paradigmatique regroupe les unités musicales selon leurs ressemblances et substitutions possibles, afin de révéler des familles de transformations.", "Expert"),
+      n("La sémiologie musicale", "La sémiologie musicale étudie la musique comme système de signes, en distinguant production, trace écrite ou sonore et réception.", "Expert"),
+      n("La théorie spectrale (harmoniques, formants, fusion timbrale)", "La théorie spectrale relie harmonie, timbre et acoustique par les séries harmoniques, les formants, les partiels et la fusion perceptive.", "Expert"),
+      n("L'écriture microtonale avancée (notations spécifiques)", "L'écriture microtonale avancée utilise flèches, demi-dièses, quarts de ton, accidentels Sagittal ou systèmes propres aux tempéraments choisis.", "Expert"),
+      n("Les systèmes modaux non occidentaux (maqâm, râga...)", "Les systèmes maqâm, râga et apparentés combinent échelles, degrés hiérarchisés, formules mélodiques, intonations et comportements expressifs.", "Expert"),
+      n("L'isomorphisme musical", "L'isomorphisme musical compare des structures conservant les mêmes relations sous une autre représentation : clavier isomorphe, réseaux harmoniques ou transformations.", "Expert"),
+      n("La musique algorithmique", "La musique algorithmique génère ou organise le matériau musical par règles, procédures, hasard contrôlé, automates, probabilités ou code informatique.", "Expert"),
+      n("L'analyse computationnelle de la musique", "L'analyse computationnelle emploie des algorithmes pour extraire motifs, tonalités, similarités, structures, profils rythmiques ou caractéristiques audio.", "Expert")
+    ]
+  },
+  {
+    category: "Gammes - catalogue étendu",
+    notions: [
+      n("Gamme majeure (mode ionien)", "Structure : 1-2-3-4-5-6-7. Couleur stable, lumineuse et tonale, base du système majeur.", "Débutant"),
+      n("Gamme mineure naturelle (mode éolien)", "Structure : 1-2-b3-4-5-b6-b7. Couleur mineure sans sensible, souvent modale ou mélancolique.", "Débutant"),
+      n("Mode dorien", "Structure : 1-2-b3-4-5-6-b7. Mineur avec sixte majeure, couleur souple, fréquente en jazz, folk et modalité.", "Intermédiaire"),
+      n("Mode phrygien", "Structure : 1-b2-b3-4-5-b6-b7. Mineur avec seconde abaissée, couleur sombre et tendue.", "Intermédiaire"),
+      n("Mode lydien", "Structure : 1-2-3-#4-5-6-7. Majeur avec quarte augmentée, couleur flottante et brillante.", "Intermédiaire"),
+      n("Mode mixolydien", "Structure : 1-2-3-4-5-6-b7. Majeur avec septième mineure, couleur dominante ou populaire.", "Intermédiaire"),
+      n("Mode locrien", "Structure : 1-b2-b3-4-b5-b6-b7. Mode diminué et instable, lié aux accords demi-diminués.", "Avancé"),
+      n("Gamme mineure harmonique", "Structure : 1-2-b3-4-5-b6-7. Mineur avec sensible et seconde augmentée entre b6 et 7.", "Intermédiaire"),
+      n("Gamme mineure mélodique ascendante", "Structure : 1-2-b3-4-5-6-7. Mineur avec sixte et septième majeures, centrale en jazz moderne.", "Intermédiaire"),
+      n("Mode dorien b2", "Deuxième mode de la mineure mélodique : 1-b2-b3-4-5-6-b7. Couleur mineure avec frottement de seconde abaissée.", "Avancé"),
+      n("Mode lydien augmenté", "Troisième mode de la mineure mélodique : 1-2-3-#4-#5-6-7. Couleur majeure très instable et augmentée.", "Avancé"),
+      n("Mode lydien dominant", "Quatrième mode de la mineure mélodique : 1-2-3-#4-5-6-b7. Sonorité dominante avec #11.", "Avancé"),
+      n("Mode mixolydien b6", "Cinquième mode de la mineure mélodique : 1-2-3-4-5-b6-b7. Dominante sombre, proche de certaines couleurs modales.", "Avancé"),
+      n("Mode locrien naturel 2", "Sixième mode de la mineure mélodique : 1-2-b3-4-b5-b6-b7. Demi-diminué avec seconde naturelle.", "Avancé"),
+      n("Gamme altérée (super-locrien)", "Septième mode de la mineure mélodique : 1-b2-b3-b4-b5-b6-b7, souvent pensé 1-b9-#9-3-b5-#5-b7 sur V7alt.", "Avancé"),
+      n("Gamme majeure harmonique", "Structure : 1-2-3-4-5-b6-7. Majeur avec sixte abaissée, mélange de stabilité majeure et tension orientale.", "Avancé"),
+      n("Mode dorien b5", "Mode issu de la majeure harmonique : 1-2-b3-4-b5-6-b7. Mineur modal avec quinte diminuée.", "Expert"),
+      n("Mode phrygien b4", "Mode issu de la majeure harmonique : 1-b2-b3-b4-5-b6-b7. Couleur très sombre avec quarte diminuée.", "Expert"),
+      n("Mode lydien b3", "Mode issu de la majeure harmonique : 1-2-b3-#4-5-6-7. Mélange de tierce mineure et tension lydienne.", "Expert"),
+      n("Mode mixolydien b2", "Mode issu de la majeure harmonique : 1-b2-3-4-5-6-b7. Dominante avec seconde abaissée.", "Expert"),
+      n("Mode lydien augmenté #2", "Mode issu de la majeure harmonique : 1-#2-3-#4-#5-6-7. Couleur augmentée très tendue.", "Expert"),
+      n("Mode locrien bb7", "Mode issu de la majeure harmonique : 1-b2-b3-4-b5-b6-bb7. Couleur diminuée avec septième doublement abaissée.", "Expert"),
+      n("Gamme chromatique", "Structure : les douze demi-tons. Elle supprime la hiérarchie diatonique et sert aux passages, couleurs et écritures atonales.", "Débutant"),
+      n("Gamme par tons entiers", "Structure : six tons entiers. Gamme symétrique sans demi-ton, couleur flottante et impressionniste.", "Intermédiaire"),
+      n("Gamme diminuée demi-ton ton", "Structure alternée : demi-ton puis ton. Elle convient aux dominantes b9 et accords diminués.", "Avancé"),
+      n("Gamme diminuée ton demi-ton", "Structure alternée : ton puis demi-ton. Elle convient directement aux accords de septième diminuée.", "Avancé"),
+      n("Gamme augmentée", "Structure symétrique alternant tierce mineure et demi-ton. Elle colore les accords augmentés et majeurs augmentés.", "Avancé"),
+      n("Gamme tritonique", "Gamme hexatonique symétrique organisée autour de deux triades séparées par un triton. Couleur moderne et instable.", "Expert"),
+      n("Gamme pentatonique majeure", "Structure : 1-2-3-5-6. Sans demi-ton, très stable et chantante.", "Débutant"),
+      n("Gamme pentatonique mineure", "Structure : 1-b3-4-5-b7. Base du blues, rock, folk et improvisation mineure.", "Débutant"),
+      n("Gamme pentatonique suspendue", "Structure : 1-2-4-5-b7. Couleur ouverte sans tierce, utile sur accords sus.", "Intermédiaire"),
+      n("Gamme pentatonique dominante", "Structure : 1-2-3-5-b7. Couleur mixolydienne condensée, utile sur accords 7.", "Intermédiaire"),
+      n("Gamme blues mineure", "Structure : 1-b3-4-b5-5-b7. Ajoute la blue note à la pentatonique mineure.", "Débutant"),
+      n("Gamme blues majeure", "Structure : 1-2-b3-3-5-6. Couleur blues lumineuse, très utilisée en jazz et gospel.", "Intermédiaire"),
+      n("Gamme bebop dominante", "Structure : 1-2-3-4-5-6-b7-7. Ajoute la septième majeure de passage au mixolydien.", "Avancé"),
+      n("Gamme bebop majeure", "Structure : 1-2-3-4-5-#5-6-7. Ajoute une note chromatique pour placer les notes d'accord sur les temps.", "Avancé"),
+      n("Gamme bebop dorienne", "Structure dorienne avec tierce majeure de passage. Elle facilite les lignes sur accords mineurs 7.", "Avancé"),
+      n("Gamme bebop mineure mélodique", "Mineure mélodique avec note de passage chromatique. Elle sert aux lignes jazz sur accords mineurs majeurs.", "Expert"),
+      n("Gamme double harmonique majeure", "Structure : 1-b2-3-4-5-b6-7. Deux secondes augmentées, couleur byzantine ou moyen-orientale stylisée.", "Avancé"),
+      n("Gamme phrygienne dominante", "Cinquième mode de la mineure harmonique : 1-b2-3-4-5-b6-b7. Couleur flamenco, klezmer ou dominante orientalisante.", "Intermédiaire"),
+      n("Gamme espagnole gitane", "Proche du phrygien dominant avec couleurs chromatiques. Elle évoque souvent le flamenco et les cadences andalouses.", "Intermédiaire"),
+      n("Gamme hongroise mineure", "Structure : 1-2-b3-#4-5-b6-7. Mineure harmonique avec quarte augmentée, couleur virtuose et très tendue.", "Avancé"),
+      n("Gamme hongroise majeure", "Structure : 1-#2-3-#4-5-6-b7. Couleur dominante brillante avec intervalles augmentés.", "Expert"),
+      n("Gamme ukrainienne dorienne", "Structure : 1-2-b3-#4-5-6-b7. Dorien avec quarte augmentée, couleur d'Europe de l'Est.", "Avancé"),
+      n("Gamme roumaine mineure", "Structure : 1-2-b3-#4-5-6-b7. Très proche de l'ukrainienne dorienne, utilisée dans des couleurs balkaniques.", "Avancé"),
+      n("Gamme napolitaine mineure", "Structure : 1-b2-b3-4-5-b6-7. Mineure avec seconde abaissée et sensible.", "Avancé"),
+      n("Gamme napolitaine majeure", "Structure : 1-b2-b3-4-5-6-7. Couleur hybride entre mineur sombre et tension majeure supérieure.", "Expert"),
+      n("Gamme persane", "Structure courante : 1-b2-3-4-b5-b6-7. Couleur très tendue avec seconde augmentée et quinte diminuée.", "Expert"),
+      n("Gamme arabe", "Nom générique pour plusieurs échelles; dans l'usage occidental, souvent proche de la double harmonique ou de modes à secondes augmentées.", "Intermédiaire"),
+      n("Gamme byzantine", "Autre nom courant de la double harmonique majeure. Couleur symétrique autour de la quinte avec deux secondes augmentées.", "Avancé"),
+      n("Gamme enigmatique", "Structure : 1-b2-3-#4-#5-#6-7. Gamme rare, très chromatique, associée à Verdi et aux couleurs post-romantiques.", "Expert"),
+      n("Gamme Prométhée", "Structure : 1-2-3-#4-6-b7. Gamme hexatonique liée à Scriabine et aux accords mystiques.", "Expert"),
+      n("Gamme acoustique", "Structure : 1-2-3-#4-5-6-b7. Même collection que lydien dominant, proche de certains partiels harmoniques.", "Avancé"),
+      n("Gamme napolitaine majeure harmonique", "Variation rare combinant seconde abaissée, tierce mineure et degrés supérieurs majeurs. Couleur théorique très spécialisée.", "Expert"),
+      n("Gamme Hirajoshi", "Pentatonique japonaise courante, souvent donnée 1-2-b3-5-b6. Couleur mélancolique et ouverte.", "Avancé"),
+      n("Gamme Insen", "Échelle japonaise souvent donnée 1-b2-4-5-b7. Couleur austère, sans tierce, très expressive.", "Avancé"),
+      n("Gamme Iwato", "Échelle japonaise proche du mode locrien pentatonique : 1-b2-4-b5-b7. Couleur suspendue et sombre.", "Expert"),
+      n("Gamme Kumoi", "Pentatonique japonaise souvent donnée 1-2-b3-5-6. Couleur douce entre mineur et pentatonique majeure.", "Avancé"),
+      n("Gamme Yo", "Échelle japonaise sans demi-ton, souvent proche de 1-2-4-5-6. Couleur claire et stable.", "Intermédiaire"),
+      n("Gamme Pelog", "Échelle indonésienne à hauteurs variables selon les gamelans. Elle ne correspond pas exactement au tempérament égal occidental.", "Expert"),
+      n("Gamme Slendro", "Échelle indonésienne pentatonique aux intervalles relativement équidistants, accordée différemment selon les ensembles.", "Expert"),
+      n("Maqâm Rast", "Mode moyen-oriental souvent proche d'un majeur avec degrés mobiles et tierces neutres selon les traditions.", "Expert"),
+      n("Maqâm Bayati", "Mode moyen-oriental centré sur une seconde partiellement abaissée, avec formules mélodiques caractéristiques.", "Expert"),
+      n("Maqâm Hijaz", "Mode à seconde augmentée typique, proche de 1-b2-3-4-5-b6-b7 dans l'approximation occidentale.", "Avancé"),
+      n("Maqâm Saba", "Mode très expressif avec couleurs microtonales et tétracordes spécifiques, difficile à réduire au tempérament égal.", "Expert"),
+      n("Râga Yaman", "Râga hindoustani proche d'un lydien avec règles mélodiques, notes importantes et mouvements caractéristiques.", "Expert"),
+      n("Râga Bhairav", "Râga utilisant des degrés abaissés spécifiques, souvent associé à une couleur grave et matinale.", "Expert"),
+      n("Râga Kafi", "Râga proche d'un mode dorien dans l'approximation occidentale, avec comportements mélodiques propres.", "Expert"),
+      n("Râga Todi", "Râga complexe avec degrés altérés et intonation fine, fortement dépendant de l'ornementation.", "Expert"),
+      n("Gamme octatonique Messiaen mode 2", "Mode à transposition limitée alternant demi-ton et ton. Il n'existe que trois transpositions distinctes.", "Expert"),
+      n("Gamme Messiaen mode 3", "Mode à transposition limitée de neuf sons, organisé par groupes symétriques. Couleur riche et non fonctionnelle.", "Expert"),
+      n("Gamme Messiaen mode 4", "Mode à transposition limitée de huit sons avec symétrie interne, moins courant que les modes 1 à 3.", "Expert"),
+      n("Gamme Messiaen mode 5", "Mode à transposition limitée de six sons, très symétrique et coloré.", "Expert"),
+      n("Gamme Messiaen mode 6", "Mode à transposition limitée de huit sons, différent de l'octatonique par sa répartition intervallique.", "Expert"),
+      n("Gamme Messiaen mode 7", "Mode à transposition limitée de dix sons, dense et très chromatique.", "Expert")
+    ]
+  }
+];
+
+DATA.push(...ADDITIONAL_SECTIONS);
+
+const VERIFIED_SOURCES = {
+  solfege: link("Wikipédia - Solfège", "Vue d'ensemble en français", "https://fr.wikipedia.org/wiki/Solf%C3%A8ge"),
+  clefs: link("Musictheory.net - Staff, clefs and ledger lines", "Leçon vérifiée sur les clés", "https://www.musictheory.net/lessons/10"),
+  noteDuration: link("Musictheory.net - Note duration", "Valeurs de notes", "https://www.musictheory.net/lessons/11"),
+  rests: link("Musictheory.net - Rest duration", "Silences musicaux", "https://www.musictheory.net/lessons/13"),
+  dotsTies: link("Musictheory.net - Dots and ties", "Points et liaisons de prolongation", "https://www.musictheory.net/lessons/14"),
+  point: link("Wikipédia - Point de prolongation", "Point d'augmentation", "https://fr.wikipedia.org/wiki/Point_de_prolongation"),
+  articulation: link("Wikipédia - Articulation musicale", "Liaisons et phrasé", "https://fr.wikipedia.org/wiki/Articulation_(musique)"),
+  tie: link("Wikipédia - Liaison de prolongation", "Tenue de notes identiques", "https://fr.wikipedia.org/wiki/Liaison_de_prolongation"),
+  meter: link("Musictheory.net - Measures and time signature", "Mesures et chiffrage", "https://www.musictheory.net/lessons/12"),
+  simpleCompound: link("Musictheory.net - Simple and compound meter", "Mesures simples et composées", "https://www.musictheory.net/lessons/15"),
+  oddMeter: link("Musictheory.net - Odd meter", "Mesures complexes et asymétriques", "https://www.musictheory.net/lessons/16"),
+  tempo: link("Wikipédia - Tempo", "Vitesse d'exécution", "https://fr.wikipedia.org/wiki/Tempo"),
+  dynamics: link("Wikipédia - Nuance", "Intensité sonore", "https://fr.wikipedia.org/wiki/Nuance_(solf%C3%A8ge)"),
+  accidentals: link("Musictheory.net - Steps and accidentals", "Tons, demi-tons et altérations", "https://www.musictheory.net/lessons/20"),
+  majorScale: link("Musictheory.net - The major scale", "Construction de la gamme majeure", "https://www.musictheory.net/lessons/21"),
+  minorScales: link("Musictheory.net - The minor scales", "Mineur naturel, harmonique et mélodique", "https://www.musictheory.net/lessons/22"),
+  scaleDegrees: link("Musictheory.net - Scale degrees", "Noms et fonctions des degrés", "https://www.musictheory.net/lessons/23"),
+  keySignatures: link("Musictheory.net - Key signatures", "Armures et tonalités", "https://www.musictheory.net/lessons/24"),
+  circle: link("Wikipédia - Cycle des quintes", "Relations entre tonalités", "https://fr.wikipedia.org/wiki/Cycle_des_quintes"),
+  chromatic: link("Wikipédia - Échelle chromatique", "Gamme chromatique", "https://fr.wikipedia.org/wiki/Gamme_chromatique"),
+  intervals: link("Musictheory.net - Specific intervals", "Intervalles et qualités", "https://www.musictheory.net/lessons/31"),
+  intervalInversion: link("Musictheory.net - Interval inversion", "Renversement des intervalles", "https://www.musictheory.net/lessons/33"),
+  enharmonie: link("Wikipédia - Enharmonie", "Notes et intervalles enharmoniques", "https://fr.wikipedia.org/wiki/Enharmonie"),
+  consonance: link("Wikipédia - Consonance", "Stabilité des intervalles", "https://fr.wikipedia.org/wiki/Consonance_(musique)"),
+  dissonance: link("Wikipédia - Dissonance", "Tension et résolution", "https://fr.wikipedia.org/wiki/Dissonance_(musique)"),
+  tuplets: link("Wikipédia - Tuplet", "Triolets, duolets et groupes irréguliers", "https://en.wikipedia.org/wiki/Tuplet"),
+  syncopation: link("Wikipédia - Syncope", "Déplacement d'accent", "https://fr.wikipedia.org/wiki/Syncope_(musique)"),
+  anacrusis: link("Wikipédia - Anacrouse", "Notes avant le premier temps fort", "https://fr.wikipedia.org/wiki/Anacrouse"),
+  hemiola: link("Wikipédia - Hémiole", "Regroupements 2 contre 3", "https://fr.wikipedia.org/wiki/H%C3%A9miole"),
+  polyrhythm: link("Wikipédia - Polyrythmie", "Superpositions rythmiques", "https://fr.wikipedia.org/wiki/Polyrythmie"),
+  metronome: link("Wikipédia - Métronome", "M.M. et pulsations par minute", "https://fr.wikipedia.org/wiki/M%C3%A9tronome"),
+  triads: link("Musictheory.net - Introduction to chords", "Accords parfaits", "https://www.musictheory.net/lessons/40"),
+  triadInversion: link("Musictheory.net - Triad inversion", "Renversements d'accords", "https://www.musictheory.net/lessons/42"),
+  diatonicTriads: link("Musictheory.net - Diatonic triads", "Accords diatoniques", "https://www.musictheory.net/lessons/43"),
+  sevenths: link("Musictheory.net - Seventh chords", "Accords de septième", "https://www.musictheory.net/lessons/45"),
+  diatonicSevenths: link("Musictheory.net - Diatonic seventh chords", "Septièmes diatoniques", "https://www.musictheory.net/lessons/46"),
+  seventhInversion: link("Musictheory.net - Seventh chord inversion", "Renversements de septièmes", "https://www.musictheory.net/lessons/47"),
+  firstInversion: link("Musictheory.net - Triads in first inversion", "Accords de sixte", "https://www.musictheory.net/lessons/60"),
+  secondInversion: link("Musictheory.net - Triads in second inversion", "Accords de quarte et sixte", "https://www.musictheory.net/lessons/61"),
+  nonharmonic: link("Musictheory.net - Nonharmonic tones", "Notes étrangères", "https://www.musictheory.net/lessons/53"),
+  cadences: link("Musictheory.net - Phrases and cadences", "Phrases et cadences", "https://www.musictheory.net/lessons/55"),
+  picardy: link("Wikipédia - Tierce picarde", "Conclusion majeure en contexte mineur", "https://fr.wikipedia.org/wiki/Tierce_picarde"),
+  pedal: link("Wikipédia - Pédale", "Pédale harmonique", "https://fr.wikipedia.org/wiki/P%C3%A9dale_(musique)"),
+  diminishedSeventh: link("Wikipédia - Septième diminuée", "Accord de septième diminuée", "https://fr.wikipedia.org/wiki/Septi%C3%A8me_diminu%C3%A9e"),
+  ninth: link("Wikipédia - Neuvième de dominante", "Accord de neuvième", "https://fr.wikipedia.org/wiki/Accord_de_neuvi%C3%A8me_de_dominante"),
+  modes: link("Wikipédia - Mode musical", "Modes et modalité", "https://fr.wikipedia.org/wiki/Mode_(musique)"),
+  wholeTone: link("Wikipédia - Gamme par tons", "Gamme de tons entiers", "https://fr.wikipedia.org/wiki/Gamme_par_tons"),
+  octatonic: link("Wikipédia - Gamme octatonique", "Mode diminué", "https://fr.wikipedia.org/wiki/Gamme_octatonique"),
+  pentatonic: link("Wikipédia - Gamme pentatonique", "Gammes à cinq sons", "https://fr.wikipedia.org/wiki/Gamme_pentatonique"),
+  blues: link("Wikipédia - Gamme blues", "Blue note et pentatonique blues", "https://fr.wikipedia.org/wiki/Gamme_blues"),
+  bebop: link("Wikipédia - Bebop scale", "Gammes bop", "https://en.wikipedia.org/wiki/Bebop_scale"),
+  messiaen: link("Wikipédia - Modes à transposition limitée", "Modes de Messiaen", "https://fr.wikipedia.org/wiki/Modes_%C3%A0_transposition_limit%C3%A9e"),
+  counterpoint: link("Wikipédia - Contrepoint", "Espèces et écriture contrapuntique", "https://fr.wikipedia.org/wiki/Contrepoint"),
+  parallelFifths: link("Wikipédia - Consecutive fifths", "Quintes et octaves parallèles", "https://en.wikipedia.org/wiki/Parallel_fifths"),
+  motion: link("Wikipédia - Contrapuntal motion", "Types de mouvement entre voix", "https://en.wikipedia.org/wiki/Contrary_motion"),
+  motif: link("Wikipédia - Motif musical", "Cellule musicale", "https://fr.wikipedia.org/wiki/Motif_(musique)"),
+  period: link("Wikipédia - Period", "Antécédent et conséquent", "https://en.wikipedia.org/wiki/Period_(music)"),
+  binary: link("Wikipédia - Forme binaire", "Structure AB", "https://fr.wikipedia.org/wiki/Forme_binaire"),
+  ternary: link("Wikipédia - Forme ternaire", "Structure ABA", "https://fr.wikipedia.org/wiki/Forme_ternaire"),
+  rondo: link("Wikipédia - Rondo", "Refrain et épisodes", "https://fr.wikipedia.org/wiki/Rondo_(musique)"),
+  sonata: link("Wikipédia - Forme sonate", "Exposition, développement, réexposition", "https://fr.wikipedia.org/wiki/Forme_sonate"),
+  fugue: link("Wikipédia - Fugue", "Sujet, réponse et contre-sujet", "https://fr.wikipedia.org/wiki/Fugue"),
+  canon: link("Wikipédia - Canon", "Imitation stricte", "https://fr.wikipedia.org/wiki/Canon_(musique)"),
+  modulation: link("Wikipédia - Modulation", "Changements de tonalité", "https://fr.wikipedia.org/wiki/Modulation_(musique)"),
+  enharmonicModulation: link("Wikipédia - Enharmonic modulation", "Modulation enharmonique", "https://en.wikipedia.org/wiki/Enharmonic_modulation"),
+  secondaryDominant: link("Wikipédia - Secondary chord", "Dominantes secondaires", "https://en.wikipedia.org/wiki/Secondary_chord"),
+  neapolitan: link("Wikipédia - Neapolitan chord", "Accord napolitain", "https://en.wikipedia.org/wiki/Neapolitan_chord"),
+  augmentedSixth: link("Wikipédia - Sixte augmentée", "Italienne, française, allemande", "https://fr.wikipedia.org/wiki/Sixte_augment%C3%A9e"),
+  borrowed: link("Wikipédia - Borrowed chord", "Emprunt modal", "https://en.wikipedia.org/wiki/Borrowed_chord"),
+  transposition: link("Wikipédia - Transposition", "Transposition musicale", "https://fr.wikipedia.org/wiki/Transposition_(musique)"),
+  orchestra: link("Wikipédia - Instrument transpositeur", "Lecture d'orchestre", "https://fr.wikipedia.org/wiki/Instrument_transpositeur"),
+  figuredBass: link("Wikipédia - Basse chiffrée", "Réalisation baroque", "https://fr.wikipedia.org/wiki/Basse_chiffr%C3%A9e"),
+  analysis: link("Wikipédia - Analyse musicale", "Analyse formelle et harmonique", "https://fr.wikipedia.org/wiki/Analyse_musicale"),
+  serialism: link("Wikipédia - Musique sérielle", "Sérialisme et dodécaphonisme", "https://fr.wikipedia.org/wiki/S%C3%A9rialisme"),
+  atonality: link("Wikipédia - Atonalité", "Musique sans centre tonal", "https://fr.wikipedia.org/wiki/Atonalit%C3%A9"),
+  setTheory: link("Wikipédia - Set theory", "Analyse post-tonale", "https://en.wikipedia.org/wiki/Set_theory_(music)"),
+  polytonality: link("Wikipédia - Polytonalité", "Bitonalité et superpositions", "https://fr.wikipedia.org/wiki/Polytonalit%C3%A9"),
+  aksak: link("Wikipédia - Aksak", "Rythmes asymétriques", "https://en.wikipedia.org/wiki/Aksak"),
+  notation: link("Wikipédia - Musical notation", "Notations étendues", "https://en.wikipedia.org/wiki/Musical_notation#Extended_techniques"),
+  teoriaExercises: link("Teoria - Exercises", "Exercices interactifs actuels", "https://www.teoria.com/en/exercises/"),
+  teoriaReference: link("Teoria - Music theory reference", "Référence théorique", "https://www.teoria.com/en/reference/")
+};
+
+const SOURCE_RULES = [
+  [/\bcl[eé]s?\b|lecture en clé/, ["clefs", "teoriaExercises"]],
+  [/valeurs? de notes?|dur[ée]e/, ["noteDuration"]],
+  [/silences?/, ["rests"]],
+  [/point|double point/, ["dotsTies", "point"]],
+  [/liaison de prolongation/, ["dotsTies", "tie"]],
+  [/liaison d'expression/, ["articulation"]],
+  [/mesure|chiffres indicateurs/, ["meter", "simpleCompound"]],
+  [/tempo|m\.m\.|maelzel/, ["tempo", "metronome"]],
+  [/nuance|crescendo|decrescendo/, ["dynamics"]],
+  [/alt[ée]ration|tons et demi-tons/, ["accidentals"]],
+  [/armure|tonalit[ée]s? majeures|tonalit[ée]s? mineures|relative/, ["keySignatures", "circle"]],
+  [/degr[ée]s? de la gamme/, ["scaleDegrees"]],
+  [/gamme diatonique majeure|gamme majeure\b/, ["majorScale"]],
+  [/gamme diatonique mineure|gamme mineure|mineure harmonique|mineure mélodique/, ["minorScales"]],
+  [/chromatique/, ["chromatic", "accidentals"]],
+  [/cycle des quintes/, ["circle"]],
+  [/intervalle|intervalles/, ["intervals"]],
+  [/renversement des intervalles/, ["intervalInversion"]],
+  [/enharmonie|enharmonique/, ["enharmonie"]],
+  [/consonance/, ["consonance", "dissonance"]],
+  [/compos[ée]es?|asym[ée]triques?|additives?/, ["simpleCompound", "oddMeter"]],
+  [/triolet|duolet|quintolet|sextolet|septolet|groupes irr[ée]guliers/, ["tuplets"]],
+  [/syncope|contretemps/, ["syncopation"]],
+  [/anacrouse/, ["anacrusis"]],
+  [/h[ée]miole/, ["hemiola"]],
+  [/polyrythmie|polym[ée]trie/, ["polyrhythm"]],
+  [/accord parfait|position fondamentale/, ["triads"]],
+  [/renversements? d'accords?/, ["triadInversion"]],
+  [/sixte \(1er|accords de sixte/, ["firstInversion"]],
+  [/quarte et sixte/, ["secondInversion"]],
+  [/septi[èe]me de dominante|dominante avec septi[èe]me|v7/, ["sevenths", "seventhInversion"]],
+  [/septi[èe]mes diatoniques/, ["diatonicSevenths"]],
+  [/degr[ée]s harmoniques|fonctions harmoniques/, ["diatonicTriads", "cadences"]],
+  [/tierce de picardie/, ["picardy"]],
+  [/sensible|sous-tonique/, ["scaleDegrees"]],
+  [/neuvi[èe]me/, ["ninth"]],
+  [/accord de septi[èe]me diminu[ée]e|septi[èe]me diminu[ée]e/, ["diminishedSeventh"]],
+  [/cadence|phrase musicale/, ["cadences"]],
+  [/p[ée]dale/, ["pedal"]],
+  [/broderie|retard|note de passage|anticipation|appoggiature|note [ée]trang[èe]re/, ["nonharmonic"]],
+  [/fausse relation/, ["chromatic"]],
+  [/modes?|dorien|phrygien|lydien|mixolydien|[ée]olien|locrien|ionien/, ["modes"]],
+  [/gamme par tons|tons entiers/, ["wholeTone"]],
+  [/octatonique|diminu[ée]e \(octatonique\)/, ["octatonic"]],
+  [/pentatonique/, ["pentatonic"]],
+  [/blues/, ["blues"]],
+  [/bop/, ["bebop"]],
+  [/messiaen|transpositions limit[ée]es/, ["messiaen"]],
+  [/contrepoint|esp[èe]ce|syncopes/, ["counterpoint"]],
+  [/quintes et octaves parall[èe]les/, ["parallelFifths"]],
+  [/mouvement contraire|mouvement oblique|mouvement similaire|mouvement parall[èe]le/, ["motion"]],
+  [/motif/, ["motif"]],
+  [/p[ée]riode/, ["period"]],
+  [/forme binaire/, ["binary"]],
+  [/forme ternaire/, ["ternary"]],
+  [/rondo/, ["rondo"]],
+  [/forme sonate/, ["sonata"]],
+  [/fugue/, ["fugue"]],
+  [/canon/, ["canon"]],
+  [/modulation diatonique|modulation chromatique/, ["modulation"]],
+  [/modulation enharmonique/, ["enharmonicModulation"]],
+  [/dominante secondaire/, ["secondaryDominant"]],
+  [/napolitain/, ["neapolitan"]],
+  [/sixte italienne|sixte française|sixte allemande|accords augment[ée]s/, ["augmentedSixth"]],
+  [/emprunt modal/, ["borrowed"]],
+  [/transposition/, ["transposition"]],
+  [/orchestre|instruments transpositeurs/, ["orchestra"]],
+  [/basse chiffr[ée]e/, ["figuredBass"]],
+  [/analyse|harmonisation/, ["analysis"]],
+  [/dict[ée]e|oreille|auditive|reconnaissance/, ["teoriaExercises"]],
+  [/s[ée]rialisme|dod[ée]caphonique/, ["serialism"]],
+  [/atonalit[ée]|pantonalit[ée]/, ["atonality"]],
+  [/post-tonale|set theory|vecteur/, ["setTheory"]],
+  [/polytonalit[ée]|bitonalit[ée]/, ["polytonality"]],
+  [/aksak|non occidentaux/, ["aksak"]],
+  [/notations contemporaines|notation graphique|techniques étendues|clusters?|agrégats?/, ["notation"]],
+  [/tempérament|diapason|intonation|microton|quarts? de ton/, ["teoriaReference"]],
+  [/rubato|agogique|ornements?|articulations?/, ["articulation"]],
+  [/gamme|maqâm|maqam|râga|raga|tala/, ["modes", "teoriaReference"]],
+  [/orchestration|réduction de partition|plusieurs clés simultanées/, ["orchestra", "analysis"]],
+  [/schenker|sémiologie|paradigmatique|computationnelle|motivique|fonctionnelle avancée/, ["analysis"]],
+  [/tonnetz|néo-riemann|neo-riemann|transformations harmoniques/, ["analysis"]]
+];
+
+const CATEGORY_FALLBACKS = {
+  "Notions fondamentales": ["solfege", "teoriaReference"],
+  "Rythme et mesure": ["meter", "oddMeter"],
+  "Harmonie": ["triads", "cadences"],
+  "Modalité et gammes avancées": ["modes", "teoriaReference"],
+  "Contrepoint": ["counterpoint"],
+  "Formes et structure": ["analysis", "cadences"],
+  "Modulation et tonalité avancée": ["modulation"],
+  "Lecture et déchiffrage": ["clefs", "teoriaExercises"],
+  "Écriture et analyse": ["analysis"],
+  "Dictée et formation auditive": ["teoriaExercises"],
+  "Notions avancées et contemporaines": ["notation", "analysis"],
+  "Notation, interprétation et accordage": ["notation", "teoriaReference"],
+  "Rythme avancé": ["oddMeter", "polyrhythm"],
+  "Harmonie avancée et jazz": ["sevenths", "cadences"],
+  "Contrepoint et formes avancées": ["counterpoint", "fugue"],
+  "Analyse, orchestration et théorie contemporaine": ["analysis", "notation"],
+  "Gammes - catalogue étendu": ["modes", "teoriaReference"]
+};
+
+const STORAGE_KEY = "solfege-progress-v3";
+const CONSERVATORY_LEVELS = ["1er cycle", "2ème cycle", "3ème cycle", "Supérieur"];
+const LEVEL_ALIASES = {
+  "Débutant": "1er cycle",
+  "Intermédiaire": "2ème cycle",
+  "Avancé": "3ème cycle",
+  "Expert": "Supérieur"
+};
+let completed = loadProgress();
+let activeModal = null;
+let activeLevelFilter = "all";
+
+const allItems = DATA.flatMap(cat => cat.notions.map(notion => ({
+  category: cat.category,
+  notion,
+  id: makeId(cat.category, notion.name)
+})));
+
+document.getElementById("total-count").textContent = allItems.length;
+
+function n(name, desc, difficulty = "") {
+  return { name, desc, difficulty };
+}
+
+function link(title, sub, url) {
+  return { title, sub, url };
+}
+
+function getDifficulty(notion, category) {
+  if (notion.difficulty) return toConservatoryLevel(notion.difficulty);
+  const text = `${category} ${notion.name} ${notion.desc}`.toLowerCase();
+  if (/schenker|spectrale|microtonal|dodécaphon|dodecaphon|set theory|post-tonale|tonnetz|néo-riemann|neo-riemann|algorithmique|computationnelle|séri|serial|total chromaticism|fractales|isomorphisme|semiologie|sémiologie|paradigmatique|messiaen|transpositions limitées|clusters|spatialisation/.test(text)) {
+    return "Supérieur";
+  }
+  if (/avanc|contrepoint|fugue|modulation|poly|atonal|modalité|formes|analyse|orchestration|substitution|voicing|altéré|treizième|onzième|enharmonique|temperament|tempérament|just intonation|maq|raga|tala|euclidien|notation mensurale|proportions rythmiques|isorythm/.test(text)) {
+    return "3ème cycle";
+  }
+  if (/harmonie|accord|cadence|intervalle|gamme|mode|rythme|mesure|syncope|triolet|hémiole|lecture|dictée|armure|tonalité|degré|chromatique|ornement|articulation/.test(text)) {
+    return "2ème cycle";
+  }
+  return "1er cycle";
+}
+
+function toConservatoryLevel(label) {
+  return LEVEL_ALIASES[label] || label;
+}
+
+function difficultyClass(label) {
+  return `difficulty-${label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+}
+
+function makeId(category, name) {
+  return `${category}|${name}`
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveProgress() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
+}
+
+function setDone(id, checked) {
+  if (checked) completed.add(id);
+  else completed.delete(id);
+  saveProgress();
+  updateProgress();
+  syncRenderedState(id);
+}
+
+function updateProgress() {
+  const total = allItems.length;
+  const done = allItems.filter(item => completed.has(item.id)).length;
+  const percent = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById("progress-meta").textContent = `${done} / ${total} - ${percent}%`;
+  document.getElementById("progress-fill").style.width = `${percent}%`;
+  document.getElementById("progress-track").setAttribute("aria-valuenow", String(percent));
+  updateFocus();
+}
+
+function updateFocus() {
+  const focusBody = document.getElementById("focus-body");
+  if (!focusBody) return;
+  const pool = allItems.filter(item => {
+    const level = getDifficulty(item.notion, item.category);
+    return !completed.has(item.id) && (activeLevelFilter === "all" || level === activeLevelFilter);
+  });
+  const next = pool[0] || allItems.find(item => !completed.has(item.id));
+  if (!next) {
+    focusBody.innerHTML = `<span><strong>Tout est validé.</strong> Tu peux passer en mode révision par examens.</span>`;
+    return;
+  }
+  const level = getDifficulty(next.notion, next.category);
+  focusBody.innerHTML = `<span><strong>${escapeHTML(next.notion.name)}</strong><br>${escapeHTML(next.category)} · ${escapeHTML(level)}</span><button class="action-btn" type="button" id="open-focus">Ouvrir</button>`;
+  document.getElementById("open-focus").addEventListener("click", () => openModal(next.notion, next.category, next.id));
+}
+
+function syncRenderedState(id) {
+  const checked = completed.has(id);
+  document.querySelectorAll(`[data-id="${CSS.escape(id)}"]`).forEach(card => {
+    card.classList.toggle("done", checked);
+    const input = card.querySelector("input[type='checkbox']");
+    if (input) input.checked = checked;
+  });
+  if (activeModal && activeModal.id === id) {
+    document.getElementById("modal-done").checked = checked;
+    document.getElementById("modal-done-label").textContent = checked ? "Validée" : "Non validée";
+  }
+}
+
+function buildUI(filter = "") {
+  const main = document.getElementById("main-content");
+  const noResults = document.getElementById("no-results");
+  const q = filter.toLowerCase().trim();
+  main.innerHTML = "";
+  let anyVisible = false;
+
+  DATA.forEach((cat, categoryIndex) => {
+    const filtered = q
+      ? cat.notions.filter(item => `${item.name} ${item.desc} ${getDifficulty(item, cat.category)}`.toLowerCase().includes(q) && levelMatches(item, cat.category))
+      : cat.notions.filter(item => levelMatches(item, cat.category));
+
+    if (!filtered.length) return;
+    anyVisible = true;
+
+    const section = document.createElement("section");
+    section.className = "category";
+    section.style.animationDelay = `${Math.min(categoryIndex * 0.05, 0.45)}s`;
+
+    const doneInFiltered = filtered.filter(item => completed.has(makeId(cat.category, item.name))).length;
+    const header = document.createElement("div");
+    header.className = "category-header";
+    header.innerHTML = `<h2></h2><div class="category-line"></div><span class="category-count"></span>`;
+    header.querySelector("h2").textContent = cat.category;
+    header.querySelector(".category-count").textContent = `${doneInFiltered}/${filtered.length}`;
+    section.appendChild(header);
+
+    const grid = document.createElement("div");
+    grid.className = "notion-grid";
+
+    filtered.forEach(notion => {
+      const id = makeId(cat.category, notion.name);
+      const checked = completed.has(id);
+      const card = document.createElement("div");
+      card.setAttribute("role", "button");
+      card.tabIndex = 0;
+      card.className = `notion-card${checked ? " done" : ""}`;
+      card.dataset.id = id;
+      card.addEventListener("click", () => openModal(notion, cat.category, id));
+      card.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openModal(notion, cat.category, id);
+        }
+      });
+
+      const label = document.createElement("label");
+      label.className = "card-check";
+      label.title = "Valider cette notion";
+      label.addEventListener("click", event => event.stopPropagation());
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = checked;
+      checkbox.addEventListener("change", event => {
+        setDone(id, event.target.checked);
+        buildUI(document.getElementById("search").value);
+      });
+
+      const box = document.createElement("span");
+      box.className = "check-box";
+      box.setAttribute("aria-hidden", "true");
+      label.append(checkbox, box);
+
+      const difficulty = getDifficulty(notion, cat.category);
+      const content = document.createElement("span");
+      content.className = "card-main";
+
+      const name = document.createElement("span");
+      name.className = "card-name";
+      name.textContent = notion.name;
+
+      const badge = document.createElement("span");
+      badge.className = `difficulty-badge ${difficultyClass(difficulty)}`;
+      badge.textContent = difficulty;
+
+      const arrow = document.createElement("span");
+      arrow.className = "card-arrow";
+      arrow.textContent = "→";
+      arrow.setAttribute("aria-hidden", "true");
+
+      content.append(name, badge);
+      card.append(label, content, arrow);
+      grid.appendChild(card);
+    });
+
+    section.appendChild(grid);
+    main.appendChild(section);
+  });
+
+  noResults.style.display = anyVisible ? "none" : "block";
+  updateProgress();
+}
+
+function levelMatches(notion, category) {
+  return activeLevelFilter === "all" || getDifficulty(notion, category) === activeLevelFilter;
+}
+
+function openModal(notion, category, id) {
+  activeModal = { notion, category, id };
+  const difficulty = getDifficulty(notion, category);
+  document.getElementById("modal-cat").textContent = category;
+  document.getElementById("modal-title").textContent = notion.name;
+  document.getElementById("modal-desc").textContent = notion.desc;
+  const modalDifficulty = document.getElementById("modal-difficulty");
+  modalDifficulty.className = `modal-difficulty difficulty-badge ${difficultyClass(difficulty)}`;
+  modalDifficulty.textContent = `Niveau : ${difficulty}`;
+
+  const modalDone = document.getElementById("modal-done");
+  modalDone.checked = completed.has(id);
+  document.getElementById("modal-done-label").textContent = modalDone.checked ? "Validée" : "Non validée";
+  modalDone.onchange = event => {
+    setDone(id, event.target.checked);
+    buildUI(document.getElementById("search").value);
+  };
+
+  const linksEl = document.getElementById("modal-links");
+  linksEl.innerHTML = "";
+  getLinksFor(notion, category).forEach(item => {
+    const a = document.createElement("a");
+    a.className = `modal-link${item.kind === "video" ? " video" : ""}`;
+    a.href = item.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+
+    const icon = document.createElement("span");
+    icon.className = "link-icon";
+    icon.textContent = item.kind === "video" ? "▶" : "↗";
+
+    const text = document.createElement("span");
+    text.className = "link-text";
+    const title = document.createElement("span");
+    title.className = "link-title";
+    title.textContent = item.title;
+    const sub = document.createElement("span");
+    sub.className = "link-sub";
+    sub.textContent = item.sub;
+    text.append(title, sub);
+
+    a.append(icon, text);
+    linksEl.appendChild(a);
+  });
+
+  document.getElementById("modal-overlay").classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function initLevelFilters() {
+  document.querySelectorAll(".level-filter").forEach(button => {
+    button.addEventListener("click", () => {
+      activeLevelFilter = button.dataset.level;
+      document.querySelectorAll(".level-filter").forEach(item => {
+        const active = item === button;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-pressed", String(active));
+      });
+      buildUI(document.getElementById("search").value);
+    });
+  });
+}
+
+function escapeHTML(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getLinksFor(notion, category) {
+  const text = `${notion.name} ${notion.desc}`.toLowerCase();
+  const keys = [];
+
+  SOURCE_RULES.forEach(([pattern, sourceKeys]) => {
+    if (pattern.test(text)) keys.push(...sourceKeys);
+  });
+
+  if (!keys.length) keys.push(...(CATEGORY_FALLBACKS[category] || ["solfege"]));
+
+  const specificLinks = uniqueByUrl(keys.map(key => VERIFIED_SOURCES[key]).filter(Boolean)).slice(0, 3);
+  const links = [...specificLinks];
+  links.push(link("Wikipédia - recherche associée", "Recherche ciblée si la notion possède plusieurs pages possibles", wikipediaSearchUrl(notion.name)));
+  links.push({
+    ...link("Vidéo YouTube - cours sur cette notion", "Recherche vidéo ciblée en français", videoSearchUrl(notion.name)),
+    kind: "video"
+  });
+  return uniqueByUrl(links);
+}
+
+function uniqueByUrl(links) {
+  const seen = new Set();
+  return links.filter(item => {
+    if (seen.has(item.url)) return false;
+    seen.add(item.url);
+    return true;
+  });
+}
+
+function wikipediaSearchUrl(query) {
+  return `https://fr.wikipedia.org/w/index.php?search=${encodeURIComponent(`${query} musique solfège`)}`;
+}
+
+function videoSearchUrl(query) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} solfège cours français`)}`;
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("active");
+  document.body.style.overflow = "";
+  activeModal = null;
+}
+
+document.getElementById("modal-close").addEventListener("click", closeModal);
+document.getElementById("modal-overlay").addEventListener("click", event => {
+  if (event.target === document.getElementById("modal-overlay")) closeModal();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeModal();
+});
+document.getElementById("search").addEventListener("input", event => buildUI(event.target.value));
+
+initLevelFilters();
+buildUI();
+</script>
+</body>
+</html>
