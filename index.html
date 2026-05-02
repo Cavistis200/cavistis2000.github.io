@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Solfège - Référentiel des Notions</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
@@ -23,12 +23,24 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: pan-y;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
     font-family: 'Cormorant Garamond', Georgia, serif;
     min-height: 100vh;
     overflow-x: hidden;
+    width: 100%;
+    overscroll-behavior-x: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body::before {
@@ -726,17 +738,157 @@
   .hidden { display: none !important; }
 
   @media (max-width: 700px) {
-    header { padding: 32px 20px 24px; }
-    .search-container { padding: 0 20px; }
-    main { padding: 24px 20px 60px; }
-    .notion-grid { grid-template-columns: 1fr; }
-    .header-inner { flex-wrap: wrap; gap: 16px; }
-    .clef-symbol { font-size: 72px; }
-    .notion-count { margin-left: 0; }
-    .focus-body { align-items: flex-start; flex-direction: column; }
-    .progress-top, .modal-study { align-items: flex-start; flex-direction: column; }
-    .modal { margin: 10px; }
-    .modal-top, .modal-body { padding: 20px; }
+    header {
+      padding: calc(24px + env(safe-area-inset-top)) 16px 22px;
+    }
+    .header-inner {
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+    .clef-symbol {
+      font-size: 64px;
+    }
+    .header-text {
+      flex: 1;
+      min-width: 220px;
+    }
+    .header-text h1 {
+      font-size: 27px;
+      line-height: 1.08;
+      letter-spacing: 0.08em;
+    }
+    .header-text p {
+      font-size: 15px;
+      line-height: 1.35;
+    }
+    .notion-count {
+      width: 100%;
+      margin-left: 0;
+      text-align: left;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .notion-count .num {
+      font-size: 34px;
+    }
+    .search-container {
+      padding: 0 14px;
+      margin-top: 18px;
+    }
+    .search-wrap input {
+      min-height: 48px;
+      font-size: 16px;
+      padding: 13px 14px 13px 44px;
+    }
+    .progress-panel,
+    .control-block,
+    .focus-panel {
+      padding: 12px;
+    }
+    .progress-top,
+    .modal-study {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .level-filter,
+    .action-btn {
+      min-height: 44px;
+      width: 100%;
+      padding: 10px 8px;
+      font-size: 10px;
+      white-space: normal;
+    }
+    .focus-body {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    main {
+      padding: 24px 14px 60px;
+    }
+    .category {
+      margin-bottom: 34px;
+    }
+    .category-header {
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .category-header h2 {
+      white-space: normal;
+      line-height: 1.35;
+      letter-spacing: 0.18em;
+    }
+    .category-line {
+      margin-top: 8px;
+    }
+    .notion-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+    .notion-card {
+      min-height: 64px;
+      padding: 13px 12px;
+      transform: none !important;
+    }
+    .card-name {
+      font-size: 16px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .card-check,
+    .check-box {
+      width: 26px;
+      height: 26px;
+    }
+    .modal-overlay {
+      align-items: stretch;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    }
+    .modal {
+      width: 100%;
+      max-width: none;
+      min-height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border-left: none;
+      border-right: none;
+      overflow-y: auto;
+    }
+    .modal-top,
+    .modal-body {
+      padding: 20px 16px;
+    }
+    .modal-title {
+      font-size: 20px;
+      padding-right: 42px;
+      overflow-wrap: anywhere;
+    }
+    .modal-desc {
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    .modal-link {
+      padding: 13px 12px;
+    }
+    footer {
+      padding: 22px 14px calc(22px + env(safe-area-inset-bottom));
+      line-height: 1.5;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .segmented {
+      grid-template-columns: 1fr;
+    }
+    .header-text {
+      min-width: 180px;
+    }
   }
 </style>
 </head>
