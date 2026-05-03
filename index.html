@@ -137,6 +137,92 @@
     text-transform: uppercase;
   }
 
+  /* Sync status indicator */
+  .sync-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--gold-border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .sync-status.visible { opacity: 1; }
+  .sync-status.saving { color: var(--gold); border-color: var(--gold); }
+  .sync-status.saved { color: var(--green); border-color: rgba(127,163,125,0.4); }
+  .sync-status.error { color: #d6a0a0; border-color: rgba(192,80,74,0.4); }
+
+  .sync-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .sync-status.saving .sync-dot {
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.5s ease;
+  }
+
+  .loading-overlay.done { opacity: 0; pointer-events: none; }
+
+  .loading-clef {
+    font-size: 72px;
+    color: var(--gold);
+    opacity: 0.7;
+    animation: float 2s ease-in-out infinite;
+  }
+
+  .loading-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+  }
+
   .search-container {
     position: relative;
     z-index: 10;
@@ -880,6 +966,10 @@
       padding: 22px 14px calc(22px + env(safe-area-inset-bottom));
       line-height: 1.5;
     }
+    .sync-status {
+      bottom: 70px;
+      right: 14px;
+    }
   }
 
   @media (max-width: 380px) {
@@ -893,6 +983,18 @@
 </style>
 </head>
 <body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-clef">𝄞</div>
+  <div class="loading-text">Synchronisation<span class="loading-dots"></span></div>
+</div>
+
+<!-- Sync status badge -->
+<div class="sync-status" id="sync-status">
+  <div class="sync-dot"></div>
+  <span id="sync-label">Synchronisé</span>
+</div>
 
 <div class="staff-bg">
   <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -1541,66 +1643,42 @@ const CATEGORY_FALLBACKS = {
 };
 
 const STORAGE_KEY = "solfege-progress-v3";
-const CONSERVATORY_LEVELS = ["1er cycle", "2ème cycle", "3ème cycle", "Supérieur"];
 const LEVEL_ALIASES = {
   "Débutant": "1er cycle",
   "Intermédiaire": "2ème cycle",
   "Avancé": "3ème cycle",
   "Expert": "Supérieur"
 };
-let completed = loadProgress();
+
+let completed = new Set();
 let activeModal = null;
 let activeLevelFilter = "all";
+let syncTimer = null;
 
-const allItems = DATA.flatMap(cat => cat.notions.map(notion => ({
-  category: cat.category,
-  notion,
-  id: makeId(cat.category, notion.name)
-})));
+// ─── Storage helpers (window.storage with localStorage fallback) ─────────────
 
-document.getElementById("total-count").textContent = allItems.length;
-
-function n(name, desc, difficulty = "") {
-  return { name, desc, difficulty };
-}
-
-function link(title, sub, url) {
-  return { title, sub, url };
-}
-
-function getDifficulty(notion, category) {
-  if (notion.difficulty) return toConservatoryLevel(notion.difficulty);
-  const text = `${category} ${notion.name} ${notion.desc}`.toLowerCase();
-  if (/schenker|spectrale|microtonal|dodécaphon|dodecaphon|set theory|post-tonale|tonnetz|néo-riemann|neo-riemann|algorithmique|computationnelle|séri|serial|total chromaticism|fractales|isomorphisme|semiologie|sémiologie|paradigmatique|messiaen|transpositions limitées|clusters|spatialisation/.test(text)) {
-    return "Supérieur";
+async function loadProgress() {
+  // Try window.storage first (Claude artifact persistent storage – synced across devices)
+  if (typeof window.storage !== "undefined") {
+    try {
+      const result = await window.storage.get(STORAGE_KEY);
+      if (result && result.value) {
+        return new Set(JSON.parse(result.value));
+      }
+      // Attempt migration from localStorage
+      const local = localStorage.getItem(STORAGE_KEY);
+      if (local) {
+        const migrated = new Set(JSON.parse(local));
+        await window.storage.set(STORAGE_KEY, JSON.stringify([...migrated]));
+        localStorage.removeItem(STORAGE_KEY);
+        return migrated;
+      }
+      return new Set();
+    } catch {
+      // fall through to localStorage
+    }
   }
-  if (/avanc|contrepoint|fugue|modulation|poly|atonal|modalité|formes|analyse|orchestration|substitution|voicing|altéré|treizième|onzième|enharmonique|temperament|tempérament|just intonation|maq|raga|tala|euclidien|notation mensurale|proportions rythmiques|isorythm/.test(text)) {
-    return "3ème cycle";
-  }
-  if (/harmonie|accord|cadence|intervalle|gamme|mode|rythme|mesure|syncope|triolet|hémiole|lecture|dictée|armure|tonalité|degré|chromatique|ornement|articulation/.test(text)) {
-    return "2ème cycle";
-  }
-  return "1er cycle";
-}
-
-function toConservatoryLevel(label) {
-  return LEVEL_ALIASES[label] || label;
-}
-
-function difficultyClass(label) {
-  return `difficulty-${label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
-}
-
-function makeId(category, name) {
-  return `${category}|${name}`
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function loadProgress() {
+  // localStorage fallback (offline / outside Claude)
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return new Set(raw ? JSON.parse(raw) : []);
@@ -1609,14 +1687,76 @@ function loadProgress() {
   }
 }
 
-function saveProgress() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
+async function saveProgress() {
+  const data = JSON.stringify([...completed]);
+  showSync("saving");
+  if (typeof window.storage !== "undefined") {
+    try {
+      await window.storage.set(STORAGE_KEY, data);
+      showSync("saved");
+      return;
+    } catch {
+      showSync("error");
+    }
+  }
+  // localStorage fallback
+  try {
+    localStorage.setItem(STORAGE_KEY, data);
+    showSync("saved");
+  } catch {
+    showSync("error");
+  }
 }
 
-function setDone(id, checked) {
+// ─── Sync UI badge ───────────────────────────────────────────────────────────
+
+function showSync(state) {
+  const el = document.getElementById("sync-status");
+  const label = document.getElementById("sync-label");
+  clearTimeout(syncTimer);
+  el.className = `sync-status visible ${state}`;
+  label.textContent = state === "saving" ? "Sauvegarde…" : state === "saved" ? "Synchronisé ✓" : "Erreur de sync";
+  if (state !== "saving") {
+    syncTimer = setTimeout(() => { el.classList.remove("visible"); }, 2200);
+  }
+}
+
+// ─── Data helpers ────────────────────────────────────────────────────────────
+
+const allItems = DATA.flatMap(cat => cat.notions.map(notion => ({
+  category: cat.category,
+  notion,
+  id: makeId(cat.category, notion.name)
+})));
+
+function n(name, desc, difficulty = "") { return { name, desc, difficulty }; }
+function link(title, sub, url) { return { title, sub, url }; }
+
+function getDifficulty(notion, category) {
+  if (notion.difficulty) return toConservatoryLevel(notion.difficulty);
+  const text = `${category} ${notion.name} ${notion.desc}`.toLowerCase();
+  if (/schenker|spectrale|microtonal|dodécaphon|dodecaphon|set theory|post-tonale|tonnetz|néo-riemann|neo-riemann|algorithmique|computationnelle|séri|serial|total chromaticism|fractales|isomorphisme|semiologie|sémiologie|paradigmatique|messiaen|transpositions limitées|clusters|spatialisation/.test(text)) return "Supérieur";
+  if (/avanc|contrepoint|fugue|modulation|poly|atonal|modalité|formes|analyse|orchestration|substitution|voicing|altéré|treizième|onzième|enharmonique|temperament|tempérament|just intonation|maq|raga|tala|euclidien|notation mensurale|proportions rythmiques|isorythm/.test(text)) return "3ème cycle";
+  if (/harmonie|accord|cadence|intervalle|gamme|mode|rythme|mesure|syncope|triolet|hémiole|lecture|dictée|armure|tonalité|degré|chromatique|ornement|articulation/.test(text)) return "2ème cycle";
+  return "1er cycle";
+}
+
+function toConservatoryLevel(label) { return LEVEL_ALIASES[label] || label; }
+
+function difficultyClass(label) {
+  return `difficulty-${label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+}
+
+function makeId(category, name) {
+  return `${category}|${name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+// ─── State mutations ─────────────────────────────────────────────────────────
+
+async function setDone(id, checked) {
   if (checked) completed.add(id);
   else completed.delete(id);
-  saveProgress();
+  await saveProgress();
   updateProgress();
   syncRenderedState(id);
 }
@@ -1661,6 +1801,8 @@ function syncRenderedState(id) {
   }
 }
 
+// ─── UI Build ────────────────────────────────────────────────────────────────
+
 function buildUI(filter = "") {
   const main = document.getElementById("main-content");
   const noResults = document.getElementById("no-results");
@@ -1701,10 +1843,7 @@ function buildUI(filter = "") {
       card.dataset.id = id;
       card.addEventListener("click", () => openModal(notion, cat.category, id));
       card.addEventListener("keydown", event => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openModal(notion, cat.category, id);
-        }
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openModal(notion, cat.category, id); }
       });
 
       const label = document.createElement("label");
@@ -1785,11 +1924,9 @@ function openModal(notion, category, id) {
     a.href = item.url;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-
     const icon = document.createElement("span");
     icon.className = "link-icon";
     icon.textContent = item.kind === "video" ? "▶" : "↗";
-
     const text = document.createElement("span");
     text.className = "link-text";
     const title = document.createElement("span");
@@ -1799,7 +1936,6 @@ function openModal(notion, category, id) {
     sub.className = "link-sub";
     sub.textContent = item.sub;
     text.append(title, sub);
-
     a.append(icon, text);
     linksEl.appendChild(a);
   });
@@ -1823,50 +1959,28 @@ function initLevelFilters() {
 }
 
 function escapeHTML(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 function getLinksFor(notion, category) {
   const text = `${notion.name} ${notion.desc}`.toLowerCase();
   const keys = [];
-
-  SOURCE_RULES.forEach(([pattern, sourceKeys]) => {
-    if (pattern.test(text)) keys.push(...sourceKeys);
-  });
-
+  SOURCE_RULES.forEach(([pattern, sourceKeys]) => { if (pattern.test(text)) keys.push(...sourceKeys); });
   if (!keys.length) keys.push(...(CATEGORY_FALLBACKS[category] || ["solfege"]));
-
   const specificLinks = uniqueByUrl(keys.map(key => VERIFIED_SOURCES[key]).filter(Boolean)).slice(0, 3);
   const links = [...specificLinks];
   links.push(link("Wikipédia - recherche associée", "Recherche ciblée si la notion possède plusieurs pages possibles", wikipediaSearchUrl(notion.name)));
-  links.push({
-    ...link("Vidéo YouTube - cours sur cette notion", "Recherche vidéo ciblée en français", videoSearchUrl(notion.name)),
-    kind: "video"
-  });
+  links.push({ ...link("Vidéo YouTube - cours sur cette notion", "Recherche vidéo ciblée en français", videoSearchUrl(notion.name)), kind: "video" });
   return uniqueByUrl(links);
 }
 
 function uniqueByUrl(links) {
   const seen = new Set();
-  return links.filter(item => {
-    if (seen.has(item.url)) return false;
-    seen.add(item.url);
-    return true;
-  });
+  return links.filter(item => { if (seen.has(item.url)) return false; seen.add(item.url); return true; });
 }
 
-function wikipediaSearchUrl(query) {
-  return `https://fr.wikipedia.org/w/index.php?search=${encodeURIComponent(`${query} musique solfège`)}`;
-}
-
-function videoSearchUrl(query) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} solfège cours français`)}`;
-}
+function wikipediaSearchUrl(query) { return `https://fr.wikipedia.org/w/index.php?search=${encodeURIComponent(`${query} musique solfège`)}`; }
+function videoSearchUrl(query) { return `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} solfège cours français`)}`; }
 
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("active");
@@ -1875,16 +1989,24 @@ function closeModal() {
 }
 
 document.getElementById("modal-close").addEventListener("click", closeModal);
-document.getElementById("modal-overlay").addEventListener("click", event => {
-  if (event.target === document.getElementById("modal-overlay")) closeModal();
-});
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeModal();
-});
+document.getElementById("modal-overlay").addEventListener("click", event => { if (event.target === document.getElementById("modal-overlay")) closeModal(); });
+document.addEventListener("keydown", event => { if (event.key === "Escape") closeModal(); });
 document.getElementById("search").addEventListener("input", event => buildUI(event.target.value));
 
-initLevelFilters();
-buildUI();
+// ─── Init (async to await cloud storage load) ────────────────────────────────
+
+async function init() {
+  document.getElementById("total-count").textContent = allItems.length;
+  completed = await loadProgress();
+  initLevelFilters();
+  buildUI();
+  // Hide loading overlay
+  const overlay = document.getElementById("loading-overlay");
+  overlay.classList.add("done");
+  setTimeout(() => overlay.remove(), 600);
+}
+
+init();
 </script>
 </body>
 </html>
