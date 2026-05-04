@@ -1098,7 +1098,7 @@
   <section class="sync-panel" aria-label="Synchronisation en direct">
     <div class="control-block sync-block">
       <div class="control-label">Synchronisation (GitHub Pages)</div>
-      <p class="sync-hint">Les pages GitHub ne peuvent pas exécuter de programme : la liste partagée est stockée sur <strong>Supabase</strong> (gratuit, une fois configuré). Remplis <code>config.supabase.js</code> avec l’URL du projet et la clé <em>anon</em>, exécute le SQL du dépôt, pousse sur GitHub : PC, téléphone et tablette voient les mêmes coches en direct, sans rien lancer sur ton PC.</p>
+      <p class="sync-hint">Les pages GitHub ne servent que des fichiers statiques : la progression partagée est lue/écrite sur <strong>Supabase</strong> via son API web (sans module lourd). Remplis <code>config.supabase.js</code>, exécute <code>supabase-setup.sql</code>, pousse sur GitHub. Les autres appareils se mettent à jour automatiquement toutes les quelques secondes.</p>
       <div class="sync-server-row">
         <label class="sync-code-label" for="sync-api-base">Optionnel — API Node locale (tests sur localhost uniquement)</label>
         <input type="url" id="sync-api-base" class="sync-code-input sync-api-input" placeholder="laisser vide sur GitHub Pages" autocomplete="off">
@@ -1137,7 +1137,6 @@
 
 <footer>𝄞 &nbsp; Chaque notion est une porte vers une meilleure oreille &nbsp; 𝄢</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.min.js"></script>
 <script src="config.supabase.js"></script>
 <script>
 const DATA = [
@@ -1712,8 +1711,8 @@ let syncTimer = null;
 let apiBase = "";
 /** @type {EventSource | null} */
 let progressEventSource = null;
-/** @type {any} */
-let supabaseClient = null;
+let supabasePollTimer = null;
+let supabaseVisibilityHooked = false;
 
 function readApiBaseFromStorage() {
   try {
@@ -1741,26 +1740,129 @@ function shouldTryExpressApi() {
   return h === "localhost" || h === "127.0.0.1";
 }
 
+/** Clé utilisable dans le navigateur (pas sb_secret_ ni service_role). */
+function supabaseBrowserKeyOk(key) {
+  const k = String(key || "").trim();
+  if (!k || k.length < 20) return false;
+  if (k.startsWith("sb_secret_")) return false;
+  if (k.startsWith("service_role")) return false;
+  return k.startsWith("eyJ") || k.startsWith("sb_publishable_");
+}
+
+function supabaseKeyProblemMessage() {
+  const c = window.SOLFEGE_SUPABASE || {};
+  const k = String(c.anonKey || "").trim();
+  if (!c.url || !k) return "";
+  if (k.startsWith("sb_secret_")) {
+    return "Mauvaise clé : sb_secret_ est réservée au serveur. Copie la clé « publishable » (sb_publishable_…) ou « anon » JWT (eyJ…) dans Supabase → Paramètres → API.";
+  }
+  if (!supabaseBrowserKeyOk(k)) {
+    return "Clé non reconnue : utilise uniquement la clé anon / publishable (eyJ… ou sb_publishable_…).";
+  }
+  return "";
+}
+
 function isSupabaseConfigured() {
   const c = window.SOLFEGE_SUPABASE;
-  const ns = typeof supabase !== "undefined" ? supabase : window.supabase;
   return !!(
     c &&
     typeof c.url === "string" &&
     c.url.length > 8 &&
     typeof c.anonKey === "string" &&
-    c.anonKey.length > 20 &&
-    ns &&
-    typeof ns.createClient === "function"
+    supabaseBrowserKeyOk(c.anonKey)
   );
 }
 
-function ensureSupabaseClient() {
-  if (supabaseClient) return supabaseClient;
-  const c = window.SOLFEGE_SUPABASE;
-  const ns = typeof supabase !== "undefined" ? supabase : window.supabase;
-  supabaseClient = ns.createClient(c.url, c.anonKey);
-  return supabaseClient;
+function supabaseRestRoot() {
+  return String(window.SOLFEGE_SUPABASE.url || "").trim().replace(/\/$/, "");
+}
+
+function supabaseRestHeaders(extra = {}) {
+  const key = String(window.SOLFEGE_SUPABASE.anonKey || "").trim();
+  return {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    Accept: "application/json",
+    ...extra
+  };
+}
+
+async function fetchSupabaseCompletedSet() {
+  const res = await fetch(
+    `${supabaseRestRoot()}/rest/v1/solfege_progress?select=completed&id=eq.global`,
+    { headers: supabaseRestHeaders(), cache: "no-store" }
+  );
+  const text = await res.text();
+  let json;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = null;
+  }
+  if (!res.ok) {
+    const msg = (json && (json.message || json.hint || json.error)) || text || res.status;
+    throw new Error(String(msg));
+  }
+  const row = Array.isArray(json) && json[0] ? json[0] : null;
+  const arr = row && Array.isArray(row.completed) ? row.completed : [];
+  return new Set(arr);
+}
+
+async function pushSupabaseCompletedSet(ids) {
+  const body = [
+    {
+      id: "global",
+      completed: [...ids],
+      updated_at: new Date().toISOString()
+    }
+  ];
+  const res = await fetch(`${supabaseRestRoot()}/rest/v1/solfege_progress`, {
+    method: "POST",
+    headers: supabaseRestHeaders({
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates"
+    }),
+    body: JSON.stringify(body),
+    cache: "no-store"
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    let json;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      json = null;
+    }
+    const msg = (json && (json.message || json.hint || json.error)) || text || res.status;
+    throw new Error(String(msg));
+  }
+}
+
+function startSupabasePolling() {
+  if (!isSupabaseConfigured() || typeof window.storage !== "undefined") return;
+  if (supabasePollTimer) clearInterval(supabasePollTimer);
+  supabasePollTimer = setInterval(async () => {
+    try {
+      const remote = await fetchSupabaseCompletedSet();
+      applyRemoteProgress([...remote]);
+    } catch {
+      /* silencieux : réseau instable */
+    }
+  }, 3500);
+  if (!supabaseVisibilityHooked) {
+    supabaseVisibilityHooked = true;
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.visibilityState !== "visible" || typeof window.storage !== "undefined") return;
+        if (!isSupabaseConfigured()) return;
+        fetchSupabaseCompletedSet()
+          .then((remote) => applyRemoteProgress([...remote]))
+          .catch(() => {});
+      },
+      { passive: true }
+    );
+  }
 }
 
 function persistLocalProgress(ids) {
@@ -1805,29 +1907,6 @@ function applyRemoteProgress(ids) {
   persistLocalProgress(completed);
   buildUI(document.getElementById("search").value);
   if (activeModal) syncRenderedState(activeModal.id);
-}
-
-function connectSupabaseRealtime() {
-  if (!isSupabaseConfigured() || typeof window.storage !== "undefined") return;
-  ensureSupabaseClient();
-  supabaseClient
-    .channel("solfege_progress_live")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "solfege_progress", filter: "id=eq.global" },
-      (payload) => {
-        const arr = payload.new && payload.new.completed;
-        if (Array.isArray(arr)) applyRemoteProgress(arr);
-      }
-    )
-    .subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        setPanelCloudState(true, "temps réel actif (tous les appareils)");
-      }
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-        setPanelCloudState(false, "temps réel interrompu — recharge la page");
-      }
-    });
 }
 
 function connectLiveProgressStream() {
@@ -1888,20 +1967,14 @@ async function loadProgress() {
   }
   if (isSupabaseConfigured()) {
     try {
-      ensureSupabaseClient();
-      const { data, error } = await supabaseClient
-        .from("solfege_progress")
-        .select("completed")
-        .eq("id", "global")
-        .maybeSingle();
-      if (error) throw error;
-      const arr = Array.isArray(data && data.completed) ? data.completed : [];
-      const set = new Set(arr);
+      const set = await fetchSupabaseCompletedSet();
       persistLocalProgress(set);
-      setPanelCloudState(true, "Supabase — progression chargée");
+      setPanelCloudState(true, "Supabase connecté (API REST)");
       return set;
     } catch (e) {
-      setPanelCloudState(false, (e && e.message) || "Supabase indisponible");
+      const msg = (e && (e.message || e.error_description)) || "Supabase indisponible";
+      setPanelCloudState(false, msg);
+      console.error("Supabase load:", e);
     }
   }
   if (shouldTryExpressApi()) {
@@ -1914,7 +1987,8 @@ async function loadProgress() {
       setPanelCloudState(false, "API locale absente — cache navigateur");
     }
   } else if (!isSupabaseConfigured()) {
-    setPanelCloudState(false, "configure config.supabase.js pour la sync entre appareils");
+    const hint = supabaseKeyProblemMessage();
+    setPanelCloudState(false, hint || "Remplis config.supabase.js (URL + clé publishable ou anon) puis repousse sur GitHub.");
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1934,15 +2008,10 @@ async function saveProgress() {
       showSync("saved");
       if (isSupabaseConfigured()) {
         try {
-          ensureSupabaseClient();
-          const { error } = await supabaseClient.from("solfege_progress").upsert(
-            { id: "global", completed: [...completed], updated_at: new Date().toISOString() },
-            { onConflict: "id" }
-          );
-          if (error) throw error;
+          await pushSupabaseCompletedSet(completed);
           setPanelCloudState(true, "copié sur Supabase");
-        } catch {
-          setPanelCloudState(false, "Supabase inaccessible");
+        } catch (e) {
+          setPanelCloudState(false, (e && e.message) || "Supabase inaccessible");
         }
       } else if (shouldTryExpressApi()) {
         try {
@@ -1959,17 +2028,14 @@ async function saveProgress() {
   }
   if (isSupabaseConfigured()) {
     try {
-      ensureSupabaseClient();
-      const { error } = await supabaseClient.from("solfege_progress").upsert(
-        { id: "global", completed: [...completed], updated_at: new Date().toISOString() },
-        { onConflict: "id" }
-      );
-      if (error) throw error;
+      await pushSupabaseCompletedSet(completed);
       setPanelCloudState(true, "enregistré sur Supabase (GitHub Pages OK)");
       showSync("saved");
       return;
     } catch (e) {
-      setPanelCloudState(false, (e && e.message) || "erreur Supabase");
+      const msg = (e && (e.message || e.error_description)) || "erreur Supabase";
+      setPanelCloudState(false, msg);
+      console.error("Supabase save:", e);
       showSync("saved");
       return;
     }
@@ -2300,7 +2366,7 @@ async function init() {
   initLevelFilters();
   buildUI();
   if (isSupabaseConfigured() && typeof window.storage === "undefined") {
-    connectSupabaseRealtime();
+    startSupabasePolling();
   } else {
     connectLiveProgressStream();
   }
